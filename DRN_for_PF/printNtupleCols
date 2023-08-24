@@ -1,0 +1,27 @@
+#!/bin/python3 -u
+import ROOT
+import argparse
+
+parser = argparse.ArgumentParser(description = "List the columns in a given root file")
+parser.add_argument("filename", type=str)
+parser.add_argument("--tree",type=str,default='nTuplelize/T')
+
+args = parser.parse_args()
+
+
+f = ROOT.TFile(args.filename)
+T = f.Get(args.tree)
+
+for event in T:
+    break;
+
+x = T.GetListOfBranches()
+for i in x:
+    name = i.GetName()
+    item = getattr(event, name)
+    if hasattr(item, '__len__'):
+        length = len(item)
+    else:
+        length = 1
+    print("{: >20} {: >05}".format(name, length))
+

@@ -1,0 +1,74 @@
+#!/bin/python3 -u
+import argparse
+import pickle
+from util import check_git, print_params
+from Validation import Validation
+import ROOT
+import numpy as np
+import matplotlib.pyplot as plt
+
+check_git()
+
+parser = argparse.ArgumentParser(description='Calculate invariant masses')
+sp = parser.add_subparsers(help='mode', dest='mode')
+
+calc_mode = sp.add_parser('calc',help='calculated Mee')
+calc_mode.add_argument('folder')
+calc_mode.add_argument('data_folder')
+calc_mode.add_argument('--target',default='logratioflip')
+
+compare_mode = sp.add_parser('compare', help='compare Mees')
+compare_mode.add_argument('--folders', type=str, nargs='+',required=True)
+compare_mode.add_argument('--labels', type=str, nargs='+', required=True)
+compare_mode.add_argument('--fname',type=str, default = 'CompareMee')
+compare_mode.add_argument('--outfolder', type=str, default = '.')
+
+args = parser.parse_args()
+
+if args.mode == 'compare':
+    Mees = []
+    for folder in args.folders:
+        with open(folder+'/Mee.pickle','rb') as f:
+            Mee = pickle.load(f)
+        Mees.append(Mee)
+
+    plt.clf()
+    plt.hist(Mees, label=args.labels, range=[80,100], histtype='step',bins=100)
+    plt.legend()
+    plt.xlabel("$M_{ee}$")
+    plt.ylabel("Count")
+    plt.savefig('%s/%s_mee.png'%(args.outfolder, args.fname), format='png', bbox_inches='tight')
+elif args.mode == 'calc':
+    valid = Validation(args.folder, args.data_folder)
+    valid._loadVariable('phireco')
+    valid._loadVariable('etareco')
+    valid.loadPredictions(False)
+
+    if args.target == 'logratioflip':
+        valid._loadVariable('rawE')
+        E = np.exp(-np.asarray(valid.y_pred))*valid.data['rawE']
+    elif args.target == 'trueE':
+        E = np.asarray(valid.y_pred)
+
+
+    phi = np.asarray(valid.data['phireco'])
+    eta = np.asarray(valid.data['etareco'])
+    pt = E/np.cosh(eta)
+
+    Mee = []
+
+    for i in range(len(E)//2):
+        x = ROOT.Math.PtEtaPhiEVector(pt[i*2], eta[i*2], phi[i*2], E[i*2])
+        y = ROOT.Math.PtEtaPhiEVector(pt[i*2+1], eta[i*2+1], phi[i*2+1], E[i*2+1])
+        Mee.append((x+y).M())
+
+    with open(args.folder + '/Mee.pickle', 'wb') as f:
+        pickle.dump(np.asarray(Mee),f)
+
+    plt.clf()
+    plt.hist(Mee, bins=10, histtype='step', range=[80,100])
+    plt.title("Reduced masses")
+    plt.xlabel("$M_{ee}$")
+    plt.ylabel("Count")
+    plt.savefig(args.folder + '/Mee.png', format='png', bbox_inches='tight')
+    plt.clf()

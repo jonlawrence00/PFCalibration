@@ -1,0 +1,69 @@
+#!/usr/bin/env python3
+
+'''
+PROGRAM TO SETUP HGCAL TESTBEAM DATA FOR USE IN DRN FRAMEWORK
+Simon Rothman; July 14, 2021
+
+The framework I've writted for the DRN expects data to have been extracted from the relevant nTuple,
+cleaned up as necessary, and stored as pickle objects. 
+This is much faster than skimming the .root file every time you run anything.
+
+This is a simple script which reads the nTuple and generates the necessary .pickle files. 
+It need only be run once for a given .root file. If multiple .root files are needed, you 
+can either merge them before running this script, or run this script multiple times,
+extracting each into a different location. The resulting .pickle files will then contain
+awkward arrays (or python lists in the case of cartfeat.pickle) which can be concatenated. 
+It would not be difficult to write parsing code to go over multiple root files, but I have 
+not done so
+
+The nTuple processing is wrapped in Extract.py; 
+only the constructor and the readHGCAL() method are relevant 
+'''
+
+
+import Extract
+import pickle
+import numpy as np
+
+###################################################
+# Parameters                                      #
+###################################################
+
+#path to nTuple 
+nTuple = "/home/rusack/shared/nTuples/HGCAL_TestBeam/PionSamples/cleanedNtuples/skimmed_ntuple_dataaligncorr_config22_pions_combinedhgc_ahc_v46_allen.root"
+#name of nTuple tree
+tree = "pion_variables_v1"
+#path to folder in which to store extracted python-ready data objects. Should be somewhere in shared/pickles
+folder = "/home/rusack/shared/pickles/HGCAL_TestBeam/Test_alps/tb_data/tb_corrAlign/trim_Ahcal/upscaled"
+
+#proportion of dataset to use as training set
+split = 0.8
+
+####################################################
+# Main logic                                       #
+####################################################
+
+#nTuple-handling is wrapped in Extract.py
+ex = Extract.Extract(folder, nTuple, tree)
+ex.readHGCAL()
+
+#a bit silly, but load in trueE to figure out data length
+with open("%s/trueE.pickle"%folder, 'rb') as f:
+    trueE = pickle.load(f)
+#trueE = trueE[trueE<150]
+length = len(trueE)
+
+#create train/test split
+train_idx = np.random.choice(length, int(split * length + 0.5), replace=False)
+
+mask = np.ones(length, dtype=bool)
+mask[train_idx] = False
+valid_idx = mask.nonzero()[0]
+
+with open("%s/all_valididx.pickle"%folder, 'wb') as f:
+    pickle.dump(valid_idx, f)
+
+with open("%s/all_trainidx.pickle"%folder, 'wb') as f:
+    pickle.dump(train_idx, f)
+
+

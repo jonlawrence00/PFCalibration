@@ -1,0 +1,89 @@
+#!/usr/bin/env python3
+
+'''
+PROGRAM TO SETUP HGCAL TESTBEAM DATA FOR USE IN DRN FRAMEWORK
+Simon Rothman; July 14, 2021
+
+The framework I've writted for the DRN expects data to have been extracted from the relevant nTuple,
+cleaned up as necessary, and stored as pickle objects. 
+This is much faster than skimming the .root file every time you run anything.
+
+This is a simple script which reads the nTuple and generates the necessary .pickle files. 
+It need only be run once for a given .root file. If multiple .root files are needed, you 
+can either merge them before running this script, or run this script multiple times,
+extracting each into a different location. The resulting .pickle files will then contain
+awkward arrays (or python lists in the case of cartfeat.pickle) which can be concatenated. 
+It would not be difficult to write parsing code to go over multiple root files, but I have 
+not done so
+
+The nTuple processing is wrapped in Extract.py; 
+only the constructor and the readHGCAL() method are relevant 
+'''
+
+
+import Extract
+import pickle
+import numpy as np
+
+###################################################
+# Parameters                                      #
+###################################################
+
+#path to nTuple 
+#nTuple = "/home/bkansal/work/trial/root_file/step3_rechit2.root"
+#nTuple="/home/bkansal/work/Bhumika/The_DRN_for_HGCAL/root_file/step3_2_350_eta2pt75.root"
+#nTuple="/home/bkansal/work/Bhumika/The_DRN_for_HGCAL/root_file/step3_2_350_eta3.root"
+nTuple="/home/bkansal/work/Bhumika/The_DRN_for_HGCAL/root_file/step3_eta1to1pt5_pos.root"
+#name of nTuple tree
+tree = "s"
+
+#path to folder in which to store extracted python-ready data objects. Should be somewhere in shared/pickles
+#folder = "/home/bkansal/work/Bhumika/The_DRN_for_HGCAL/tmp/"
+#folder = "/home/bkansal/work/Bhumika/The_DRN_for_HGCAL/pickle_2_350_eta3/"
+folder = "/home/bkansal/work/Bhumika/The_DRN_for_HGCAL/pickle_2_350_eta1to1pt5_pos/"
+#proportion of dataset to use as training set
+split = 0.8
+####################################################
+# Main logic                                       #
+####################################################
+print("Extracting ntuples ........")
+#nTuple-handling is wrapped in Extract.py
+ex = Extract.Extract(folder, nTuple, tree)
+ex.readHGCAL()
+
+
+#a bit silly, but load in trueE to figure out data length
+with open("%s/trueE.pickle"%folder, 'rb') as f:
+    trueE = pickle.load(f)
+with open("%s/ecal.pickle"%folder, 'rb') as f:
+    ecal = pickle.load(f)
+with open("%s/hcal.pickle"%folder, 'rb') as f:
+    hcal = pickle.load(f)
+length = len(trueE)
+lengthEH = len(ecal)
+lengthH = len(hcal)
+print("Length of trueE ntuples ........",length)
+print("Length of ecal ntuples with EH ........",lengthEH)
+print("Length of hcal ntuples with H ........",lengthH)
+
+
+#create train/test split
+train_idx = np.random.choice(length, int(split * length + 0.5), replace=False)
+mask = np.ones(length, dtype=bool)
+mask[train_idx] = False
+valid_idx = mask.nonzero()[0]
+
+with open("%s/all_valididx.pickle"%folder, 'wb') as f:
+    pickle.dump(valid_idx, f)
+
+with open("%s/all_trainidx.pickle"%folder, 'wb') as f:
+    pickle.dump(train_idx, f)
+##########################################
+####test
+maskwt = np.ones(length, dtype=float)
+print(maskwt)
+maskwt[trueE>=200] = 1.75
+print(maskwt)
+print(trueE)
+with open("%s/trueEwt_weights.pickle"%folder, 'wb') as f:
+    pickle.dump(maskwt, f)

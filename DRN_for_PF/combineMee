@@ -1,0 +1,30 @@
+#!/bin/python3 -u
+import argparse
+
+
+from Validation import Validation
+import pickle
+import numpy as np
+import os
+
+
+parser = argparse.ArgumentParser(description='merge Mee values from different data Tranches')
+parser.add_argument("idx",type=str)
+parser.add_argument("outfolder",type=str)
+parser.add_argument('folders', type=str,nargs="+")
+args = parser.parse_args()
+
+
+Mees = []
+
+for folder in args.folders:
+    with open("%s/%s_Mee.pickle"%(folder, args.idx), 'rb') as f:
+        Mees.append(pickle.load(f))
+    print("%s: %d"%(folder, len(Mees[-1])))
+
+Mees = np.concatenate(Mees)
+
+print("all: %d"%len(Mees))
+
+with open("%s/%s_Mee.pickle"%(args.outfolder, args.idx), 'wb') as f:
+    pickle.dump(Mees, f )

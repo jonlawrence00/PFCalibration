@@ -1,0 +1,238 @@
+#!/usr/bin/env python3
+from Validation import Validation
+
+import argparse, sys
+
+from util import check_git, print_params
+
+allvars = ['trueE', 'abseta', 'HoE', 'rho', 'phi', 'R9']
+
+parser = argparse.ArgumentParser(description='Run model validation')
+parser.add_argument('--dry', action='store_true')
+
+subparsers = parser.add_subparsers(help='the mode to run in', dest='mode')
+subparsers.required=True
+
+bin_mode = subparsers.add_parser('bin', help='bin predicted/true energies')
+bin_mode.add_argument('folder', type=str)
+bin_mode.add_argument('data_folder', type=str)
+bin_mode.add_argument('--idx_name', type=str, default='EB')
+bin_mode.add_argument('--target', type=str, default='logratioflip')
+bin_mode.add_argument('--like', type=str, default=None)
+bin_mode.add_argument('--like_prefix', type=str, default=None)
+bin_mode.add_argument('--train', action='store_true')
+bin_mode.add_argument('--pho', action='store_true')
+bin_mode.add_argument('--sigmoid', type=float, default=None)
+
+compare_mode = subparsers.add_parser('compare', help='compare binned results')
+compare_mode.add_argument('variable', type=str)
+compare_mode.add_argument('--folders', type=str, nargs='+', required=True)
+compare_mode.add_argument('--labels', type=str, nargs='+', required=True)
+compare_mode.add_argument('--outfolder', type=str, default='.')
+compare_mode.add_argument('--fname', type=str, default = 'Compare')
+compare_mode.add_argument('--prefixes', type=str, nargs='+', default='bins_EB_valid')
+
+params_mode = subparsers.add_parser('params', help = 'compare semiparametric parameters')
+params_mode.add_argument('--folders', type=str, nargs='+', required=True)
+params_mode.add_argument('--dfolders', type=str, nargs='+', required=True)
+params_mode.add_argument('--labels', type=str, nargs='+', required=True)
+params_mode.add_argument('--idxs', type=str, nargs='+', default='EB')
+params_mode.add_argument('--prefix', type=str, default='CompareParams')
+params_mode.add_argument('--outfolder', type=str, default='.')
+
+convergence_mode = subparsers.add_parser('convergence', help='plot model convergence')
+convergence_mode.add_argument('--folders', type=str, nargs='+', required=True)
+convergence_mode.add_argument('--labels', type=str, nargs="+", required=True)
+convergence_mode.add_argument('--outfolder', type=str, default='.')
+convergence_mode.add_argument('--fname', type=str, default='CompareConvergence')
+convergence_mode.add_argument('--semiparam', action='store_true');
+
+hist_mode = subparsers.add_parser('hist', help='compare raw histograms')
+hist_mode.add_argument('--folders', type=str, nargs='+', required=True)
+hist_mode.add_argument('--labels', type=str, nargs='+', required=True)
+hist_mode.add_argument('--targets', type=str, nargs='+', required=True)
+hist_mode.add_argument('--idxs', type=str, nargs='+', required=True)
+hist_mode.add_argument('--dfolders', type=str, nargs='+', required=True)
+hist_mode.add_argument('--fname', type=str, default='CompareHist')
+hist_mode.add_argument('--outfolder', type=str, default='.')
+hist_mode.add_argument('--core',action='store_true')
+hist_mode.add_argument('--coretail', action='store_true')
+hist_mode.add_argument('--correction', action='store_true')
+hist_mode.add_argument('--pho', action='store_true')
+hist_mode.add_argument('--sigmoids', type=float, nargs='+', default=None)
+
+pt_mode = subparsers.add_parser('pt', help='compare pt distributions')
+pt_mode.add_argument('--folders', type=str, nargs='+', required=True)
+pt_mode.add_argument('--dfolders', type=str, nargs='+', required=True)
+pt_mode.add_argument('--labels', type=str, nargs='+', required=True)
+pt_mode.add_argument('--targets', type=str, nargs='+', required=True)
+pt_mode.add_argument('--idxs', type=str, nargs='+', required=True)
+pt_mode.add_argument('--outfolder', type=str, default='.')
+pt_mode.add_argument('--fname', type=str, default='ComparePt')
+pt_mode.add_argument('--pho', action='store_true')
+pt_mode.add_argument('--sigmoids', type=float, nargs='+', default=None)
+
+tailHist_mode = subparsers.add_parser('tailHist', help='compare distribution of variables in upper and lower tails')
+tailHist_mode.add_argument("folder",type=str)
+tailHist_mode.add_argument("data_folder",type=str)
+tailHist_mode.add_argument('variable', type=str)
+tailHist_mode.add_argument('prefix', type=str)
+tailHist_mode.add_argument("--idx_name", type=str, default='all')
+tailHist_mode.add_argument('--target', type=str, default='logratioflip')
+tailHist_mode.add_argument('--c_folder', type=str, default=None)
+tailHist_mode.add_argument('--c_dfolder', type=str, default=None)
+tailHist_mode.add_argument('--c_idx', type=str, default=None)
+tailHist_mode.add_argument('--c_target', type=str, default=None)
+tailHist_mode.add_argument('--pho', action='store_true')
+
+occupancy_mode = subparsers.add_parser('occupancy', help='plot occupancy')
+occupancy_mode.add_argument("folder",type=str)
+occupancy_mode.add_argument("data_folder",type=str)
+occupancy_mode.add_argument('prefix', type=str)
+occupancy_mode.add_argument("--idx_name", type=str, default='all')
+occupancy_mode.add_argument('--EE',action='store_true')
+occupancy_mode.add_argument('--target',type=str, default='logratioflip')
+occupancy_mode.add_argument('--pho', action='store_true')
+occupancy_mode.add_argument('--sigmoid', type=float, default=None)
+
+trainvalid_mode = subparsers.add_parser('trainvalid', help='compare training and validation performance')
+trainvalid_mode.add_argument('folder',type=str)
+trainvalid_mode.add_argument('variable', type=str)
+trainvalid_mode.add_argument('prefix',type=str)
+
+correl_mode = subparsers.add_parser('correl', help='make correlation plots for the tails')
+correl_mode.add_argument('folder', type=str)
+correl_mode.add_argument('data_folder', type=str)
+correl_mode.add_argument('prefix', type=str)
+correl_mode.add_argument('--idx_name', type=str, default='all')
+correl_mode.add_argument('--target', type=str, default='logratioflip')
+correl_mode.add_argument('--pho', action='store_true')
+
+Mee_mode = subparsers.add_parser("Mee", help = 'calculate invariant masses')
+Mee_mode.add_argument('folder', type=str)
+Mee_mode.add_argument('data_folder', type=str)
+Mee_mode.add_argument('idx', type=str)
+Mee_mode.add_argument('target', type=str)
+Mee_mode.add_argument('--pho', action='store_true')
+Mee_mode.add_argument('--Hgg', action='store_true')
+Mee_mode.add_argument('--sigmoid', type=float, default=None)
+
+compareMee_mode = subparsers.add_parser("compareMee", help = 'compare invariant masses')
+compareMee_mode.add_argument('--folders', type=str,nargs="+",required=True)
+compareMee_mode.add_argument('--labels', type=str, nargs="+", required=True)
+compareMee_mode.add_argument('--idxs', type=str, nargs="+", required=True)
+compareMee_mode.add_argument('--outfolder', type=str, default='.')
+compareMee_mode.add_argument('--fname', type=str, default='CompareMee')
+
+fitMee_mode = subparsers.add_parser('fitMee', help = 'fit Mee distribution with bw conv cb')
+fitMee_mode.add_argument('folder', type=str)
+fitMee_mode.add_argument('idx', type=str)
+fitMee_mode.add_argument('bins', type=int)
+
+fitMgg_mode = subparsers.add_parser('fitMgg', help = 'fit Mee distribution with bw conv cb')
+fitMgg_mode.add_argument('folder', type=str)
+fitMgg_mode.add_argument('idx', type=str)
+fitMgg_mode.add_argument('bins', type=int)
+
+compareMgg_mode = subparsers.add_parser("compareMgg", help = 'compare invariant masses')
+compareMgg_mode.add_argument('--folders', type=str,nargs="+",required=True)
+compareMgg_mode.add_argument('--labels', type=str, nargs="+", required=True)
+compareMgg_mode.add_argument('--idxs', type=str, nargs="+", required=True)
+compareMgg_mode.add_argument('--outfolder', type=str, default='.')
+compareMgg_mode.add_argument('--fname', type=str, default='CompareMee')
+
+
+args = parser.parse_args()
+
+if args.dry:
+    print_params(args)
+    sys.exit(0)
+
+#check_git()
+
+print_params(args)
+
+if args.mode == 'params':
+    Validation.compareParams(args.folders, args.dfolders, args.labels, args.idxs, args.prefix, args.outfolder)
+elif args.mode == 'pt':
+    Validation.compare_pt(args.folders, args.dfolders, args.labels, args.targets, args.idxs, args.outfolder, args.fname, args.pho, args.sigmoids)
+elif args.mode == 'fitMgg':
+    valid = Validation(args.folder, None, idx_name = args.idx)
+    valid.load_mee()
+    valid.fit_mgg(args.bins)
+elif args.mode == 'fitMee':
+    valid = Validation(args.folder, None, idx_name = args.idx)
+    valid.load_mee()
+    valid.fit_mee(args.bins)
+elif args.mode == 'compareMee':
+    Validation.compare_mee(args.folders, args.labels, args.idxs, args.outfolder, args.fname)
+elif args.mode == 'compareMgg':
+    Validation.compare_mgg(args.folders, args.labels, args.idxs, args.outfolder, args.fname)
+elif args.mode == 'Mee':
+    valid = Validation(args.folder, args.data_folder, args.idx, args.target, args.pho, args.sigmoid)
+    if args.target != 'trueE':
+        valid._loadVariable("rawE")
+    valid._loadVariable("etareco")
+    valid._loadVariable("phireco")
+    valid.loadValidIdx()
+    valid.loadPredictions()
+    valid.calculate_mee(args.idx, args.Hgg)
+    #valid.plot_mee(args.idx)
+elif args.mode == 'bin':
+    valid = Validation(args.folder, args.data_folder,
+            args.idx_name, 
+            args.target, args.pho, args.sigmoid)
+
+    valid.load()
+
+    valid.binEverything(train=args.train,name='bins_%s'%args.idx_name, bin_like=args.like, bin_like_prefix=args.like_prefix)
+elif args.mode == 'compare':
+    if args.variable == 'all':
+        for var in allvars:
+            Validation.compare(var, args.folders, args.labels,
+                    args.outfolder, args.fname, args.prefixes)
+    else:
+        Validation.compare(args.variable, args.folders, args.labels, 
+                args.outfolder, args.fname, args.prefixes)
+elif args.mode == 'convergence':
+    if len(args.folders)!=1:
+        Validation.compareConvergence(args.folders, args.labels, args.outfolder, args.fname, args.semiparam);
+    else:
+        mod = Validation(args.folders[0])
+        mod.plotConvergence(False,"validation loss",True,False)
+        mod.plotConvergence(True,"training loss",True,True)
+elif args.mode == 'hist':
+    if args.coretail:
+        Validation.compareHistograms(args.folders, args.labels, args.targets, args.idxs, args.dfolders, args.outfolder, args.fname+'_core', True, args.correction, args.pho, args.sigmoids)
+        Validation.compareHistograms(args.folders, args.labels, args.targets, args.idxs, args.dfolders, args.outfolder, args.fname, False, args.correction, args.pho, args.sigmoids)
+    else:
+        Validation.compareHistograms(args.folders, args.labels, args.targets, args.idxs, args.dfolders, args.outfolder, args.fname, args.core, args.correction, args.pho, args.sigmoids)
+elif args.mode == 'tailHist':
+    mod = Validation(args.folder, args.data_folder, idx_name=args.idx_name, target=args.target, photons=args.pho)
+    mod.load()
+    if args.c_folder is not None:
+        mod2 = Validation(args.c_folder, args.c_dfolder, idx_name=args.c_idx, target=args.c_target, photons=args.pho)
+        mod2.load()
+    else:
+        mod2=None
+    if args.variable == 'all':
+        for var in allvars:
+            mod.tailHists(var, args.prefix, com=mod2)
+    else:
+        mod.tailHists(args.variable, args.prefix, com=mod2)
+elif args.mode == 'occupancy':
+    mod = Validation(args.folder, args.data_folder, idx_name=args.idx_name, target = args.target, photons = args.pho, sigmoid = args.sigmoid)
+    mod.loadValidIdx()
+    mod.occupancy(args.prefix, args.EE)
+elif args.mode == 'trainvalid':
+    mod = Validation(args.folder, None)
+    if args.variable != 'all':
+        mod.compareTrainValid(args.variable, args.prefix)
+    else:
+        for var in allvars:
+            mod.compareTrainValid(args.variable, args.prefix)
+elif args.mode == 'correl':
+    mod = Validation(args.folder, args.data_folder, idx_name = args.idx_name, target = args.target)
+    mod.loadValidIdx()
+    mod.load()
+    mod.tailCorrMat(args.prefix)

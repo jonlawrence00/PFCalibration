@@ -1,0 +1,117 @@
+#!/bin/python3 -u
+
+import pickle
+import argparse
+import numpy as np
+from util import print_params
+from tqdm import tqdm
+
+parser = argparse.ArgumentParser()
+parser.add_argument('folder')
+
+args = parser.parse_args()
+
+print_params(args)
+
+with open("%s/eventidx.pickle"%args.folder, 'rb') as f:
+    eventidx = pickle.load(f)
+
+with open("%s/subdet.pickle"%args.folder, 'rb') as f:
+    subdet = pickle.load(f)
+
+with open("%s/eta.pickle"%args.folder, 'rb') as f:
+    eta = pickle.load(f)
+
+#with open("%s/energy_ecal_mustache.pickle"%args.folder, 'rb') as f:
+with open("%s/energy.pickle"%args.folder, 'rb') as f:
+    En = pickle.load(f)
+
+#with open("%s/Ele_R9.pickle"%args.folder, 'rb') as f:
+with open("%s/Pho_R9.pickle"%args.folder, 'rb') as f:
+    R9 = pickle.load(f)
+
+inEB = subdet == 1
+inEE = ~inEB
+
+EBeta = eta < 1.44
+EEeta = np.logical_and(eta>1.57, eta<2.5)
+
+EB = np.logical_and(inEB, EBeta)
+EE = np.logical_and(inEE, EEeta)
+
+pt = En/np.cosh(eta)
+
+ptcut = pt>20
+
+lowR9 = R9 < 0.96
+highR9 = ~lowR9
+
+EBEB = []
+EEEE = []
+EBEE = []
+EBEBhighR9 = []
+EBEBlowR9 = []
+EBEEhighR9 = []
+EBEElowR9 = []
+EEEElowR9 = []
+EEEEhighR9 = []
+
+sortevents = np.argsort(eventidx)
+
+for i in tqdm(range(0, len(sortevents), 2)):
+    idx0 = sortevents[i]
+    idx1 = sortevents[i+1]
+    if (eventidx[idx0] != eventidx[idx1]) or not ptcut[idx0] or not ptcut[idx1]:
+        continue
+
+    if EB[idx0] and EB[idx1]:
+        EBEB += [idx0, idx1]
+
+        if lowR9[idx0] and lowR9[idx1]:
+            EBEBlowR9 += [idx0, idx1]
+        elif highR9[idx0] and highR9[idx1]:
+            EBEBhighR9 += [idx0, idx1]
+
+    elif EE[idx0] and EE[idx1]:
+        EEEE += [idx0, idx1]
+
+        if lowR9[idx0] and lowR9[idx1]:
+            EEEElowR9 += [idx0, idx1]
+        elif highR9[idx0] and highR9[idx1]:
+            EEEEhighR9 += [idx0, idx1]
+
+    elif (EB[idx0] and EE[idx1]) or (EE[idx0] and EB[idx1]):
+        EBEE += [idx0, idx1]
+
+        if lowR9[idx0] and lowR9[idx1]:
+            EBEElowR9 += [idx0, idx1]
+        elif highR9[idx0] and highR9[idx1]:
+            EBEEhighR9 += [idx0, idx1]
+
+with open("%s/EBEB_valididx.pickle"%args.folder, 'wb') as f:
+    pickle.dump(np.asarray(EBEB), f)
+
+with open("%s/EBEB_lowR9_valididx.pickle"%args.folder, 'wb') as f:
+    pickle.dump(np.asarray(EBEBlowR9), f)
+
+with open("%s/EBEB_highR9_valididx.pickle"%args.folder, 'wb') as f:
+    pickle.dump(np.asarray(EBEBhighR9), f)
+
+with open("%s/EBEE_valididx.pickle"%args.folder, 'wb') as f:
+    pickle.dump(np.asarray(EBEE), f)
+
+with open("%s/EBEE_lowR9_valididx.pickle"%args.folder, 'wb') as f:
+    pickle.dump(np.asarray(EBEElowR9), f)
+
+with open("%s/EBEE_highR9_valididx.pickle"%args.folder, 'wb') as f:
+    pickle.dump(np.asarray(EBEEhighR9), f)
+
+with open("%s/EEEE_valididx.pickle"%args.folder, 'wb') as f:
+    pickle.dump(np.asarray(EEEE), f)
+
+with open("%s/EEEE_lowR9_valididx.pickle"%args.folder, 'wb') as f:
+    pickle.dump(np.asarray(EEEElowR9), f)
+
+with open("%s/EEEE_highR9_valididx.pickle"%args.folder, 'wb') as f:
+    pickle.dump(np.asarray(EEEEhighR9), f)
+

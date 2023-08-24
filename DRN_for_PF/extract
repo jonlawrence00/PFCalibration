@@ -1,0 +1,71 @@
+#!/usr/bin/env python3
+
+
+from util import check_git, print_params
+
+import argparse
+
+#check_git()
+
+parser = argparse.ArgumentParser(description='Extract features from nTuples')
+
+subparsers = parser.add_subparsers(help='mode', dest='mode')
+subparsers.required=True
+
+all_mode = subparsers.add_parser('all', help='extract everything')
+all_mode.add_argument("folder",type=str)
+all_mode.add_argument("nTuple", type=str)
+all_mode.add_argument("kind",type=str)
+all_mode.add_argument('--N',type=int, default=-1)
+
+local_mode = subparsers.add_parser('local', help='extract local features')
+local_mode.add_argument('folder', type=str)
+local_mode.add_argument('--nTuple', type=str,default=None)
+local_mode.add_argument("--ES", action="store_true")
+local_mode.add_argument("--scaled", action="store_true")
+
+proj_mode = subparsers.add_parser('proj', help='extract projective features')
+proj_mode.add_argument('folder', type=str)
+proj_mode.add_argument('--nTuple', type=str,default=None)
+proj_mode.add_argument("--ES", action="store_true")
+proj_mode.add_argument("--scaled", action="store_true")
+
+cart_mode = subparsers.add_parser('cart', help='extract cartesian features')
+cart_mode.add_argument('folder', type=str)
+cart_mode.add_argument('--nTuple', type=str,default=None)
+cart_mode.add_argument("--ES", action="store_true")
+cart_mode.add_argument("--scaled", action="store_true")
+
+addgx_mode = subparsers.add_parser('addgx', help='extract cartesian features')
+addgx_mode.add_argument('folder', type=str)
+addgx_mode.add_argument('--nTuple', type=str,default=None)
+addgx_mode.add_argument("--ES", action="store_true")
+addgx_mode.add_argument("--scaled", action="store_true")
+addgx_mode.add_argument('--gx', type=str, default=[], nargs='+')
+
+subdet_mode = subparsers.add_parser('subdet')
+subdet_mode.add_argument("folder", type=str)
+subdet_mode.add_argument("--nTuple", type=str,default=None)
+
+args = parser.parse_args()
+
+
+print_params(args)
+
+import Extract
+
+ex = Extract.Extract(args.folder, args.nTuple)
+if args.mode == 'all':
+    if args.N < 0:
+        args.N = None
+    ex.read(args.kind, args.N)
+elif args.mode=='local':
+    ex.build_localfeat(args.ES, args.scaled)
+elif args.mode=='proj':
+    ex.build_projfeat(args.ES, args.scaled)
+elif args.mode=='cart':
+    ex.build_cartfeat(args.ES, args.scaled)
+elif args.mode=='subdet':
+    ex.get_subdet()
+elif args.mode=='addgx':
+    ex.add_graph_features('cart', args.ES, args.scaled, args.gx)

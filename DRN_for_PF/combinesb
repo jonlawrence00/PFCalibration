@@ -1,0 +1,40 @@
+#!/bin/python3 -u
+import argparse
+
+
+from Validation import Validation
+import pickle
+import numpy as np
+import os
+
+
+parser = argparse.ArgumentParser(description='merge values as predicted by barrel and endcap regressions')
+parser.add_argument('folder', type=str)
+parser.add_argument('data_folder', type=str)
+args = parser.parse_args()
+
+folder = args.folder
+
+mod = Validation(folder, args.data_folder)
+
+mod._loadVariable("subdet")
+
+path = "%s/EB/pred.pickle"%folder
+#path = os.readlink(path)
+with open(path,'rb') as f:
+    barrel = np.asarray(pickle.load(f))
+
+path = "%s/EE/pred.pickle"%folder
+#path = os.readlink(path)
+with open(path,'rb') as f:
+    endcap = np.asarray(pickle.load(f))
+
+EB = mod.data['subdet'] == 1
+EE = mod.data['subdet'] == 0
+
+combo = np.empty(endcap.shape)
+combo[EB] = barrel[EB]
+combo[EE] = endcap[EE]
+
+with open("%s/pred.pickle"%folder,'wb') as f:
+    pickle.dump(combo, f)
