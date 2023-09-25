@@ -505,41 +505,6 @@ PFChargedHadronAnalyzer::analyze(const Event& iEvent,
 	  HcalPFclustereta_.clear();
 
 	  double Ecalrechit_energy=0, Hcalrechit_energy=0;
-/**
-	  PFCandidate d1 = ci->daughter(0);
-          reco::SuperClusterRef sc = d1->superClusterRef();
-	  if(sc.isNull())
-	  {
-		cout<<"NULL PTR"<<endl;
-	  }
- 	  std::vector< std::pair<DetId, float> > hitsAndFractions = sc->hitsAndFractions(); 
-	  float sc_totalE = 0;
-	  int sc_nRechits = 0;
-	  for (std::vector<reco::PFRecHit>::const_iterator it = pfRechitEcal->begin(); it != pfRechitEcal->end(); ++it) {
-	    double deta_ = eta_ - it->positionREP().eta();
-	    double dphi_ = dPhi(phi_, it->positionREP().phi() );
-	    double dR_ = std::sqrt(deta_*deta_+dphi_*dphi_);
-	    bool recHitinSC = false;
-	    double frac = 0;
-	    for( const auto& detitr : hitsAndFractions )
-	    {
-		DetId Did = detitr.first.rawId();
-		frac = detitr.second;
-		if(Did == it->detId())
-		{
-			recHitinSC = true;
-			break;
-		}
-	    }
-	    double recEn = it->energy()*frac;
-			
-	    if(recHitinSC && recEn > 0 ){
-		sc_totalE += recEn;
-		sc_nRechits +=1;
-	    }
-	  }
-**/
-
 	  for (std::vector<reco::PFRecHit>::const_iterator it = pfRechitEcal->begin(); it != pfRechitEcal->end(); ++it) {
 	    double deta_ = eta_ - it->positionREP().eta();
 	    double dphi_ = dPhi(phi_, it->positionREP().phi() );
@@ -580,8 +545,6 @@ PFChargedHadronAnalyzer::analyze(const Event& iEvent,
 	  
 	  cout<<"Size of EcalRechit = "<<EcalRechit_posx_.size()<<" , Size of HcalRechit = "<<HcalRechit_posx_.size()<<endl;
 	  cout<<"True energy = "<<true_<<" , EcalRechit energy = "<<Ecalrechit_energy<<" ,  HcalRechit energy = "<<Hcalrechit_energy<<endl; 
-	  //cout<<"Size of ecal supercluster rechits = "<<sc_nRechits<<endl;
-	  //cout<<"Total Ecal energy = "<<sc_totalE<<endl;
 	  nCh[10]++;      
 	}
       }
@@ -749,31 +712,25 @@ PFChargedHadronAnalyzer::analyze(const Event& iEvent,
       emHitY.push_back( tmp );
       emHitZ.push_back( tmp );
 
-      
+      /*
       //std::cout<<"***********LOOK AT ME"<<std::endl;
-      if(isMBMC_ || isSimu) {
+      // if(isMBMC_ || isSimu) {
       const std::vector< reco::PFRecHitFraction > erh=eecal.clusterRef()->recHitFractions();
-	cout<<"Number of Rechits: "<<erh.size()<<endl;
       for(unsigned int ieh=0;ieh<erh.size();ieh++) {
 	//emHitF[ii].push_back( erh[ieh].fraction() );
 	//emHitE[ii].push_back(  erh[ieh].recHitRef()->energy() );
-	cout<<" rechit "<<ieh<<" =====> "<<erh[ieh].recHitRef()->energy()<<"  "<<erh[ieh].fraction()<<" / "<<erh[ieh].recHitRef()->position().x()<<"  "<<erh[ieh].recHitRef()->position().y()<<endl;
-/*
-       	  bool isEB= erh[ieh].recHitRef()->layer()==-1;
-       	  emHitX[ii].push_back( isEB?erh[ieh].recHitRef()->position().eta() :erh[ieh].recHitRef()->position().x() );
-       	  emHitY[ii].push_back( isEB?erh[ieh].recHitRef()->position().phi() :erh[ieh].recHitRef()->position().y() );
-       	  emHitZ[ii].push_back( isEB?0:erh[ieh].recHitRef()->position().z() );
-*/
-	    emHitX[ii].push_back( erh[ieh].recHitRef()->position().x() );
-	    emHitY[ii].push_back( erh[ieh].recHitRef()->position().y() );
-	    emHitZ[ii].push_back( erh[ieh].recHitRef()->position().z() );
+	cout<<" rechit "<<ieh<<" =====> "<<erh[ieh].recHitRef()->energy()<<"  "<<erh[ieh].fraction()<<" / "<<erh[ieh].recHitRef()->position().eta()<<"  "<<erh[ieh].recHitRef()->position().phi()<<endl;
       }
-      
+      */
+      // 	  bool isEB= erh[ieh].recHitRef()->layer()==-1;
+      // 	  emHitX[ii].push_back( isEB?erh[ieh].recHitRef()->position().eta() :erh[ieh].recHitRef()->position().x() );
+      // 	  emHitY[ii].push_back( isEB?erh[ieh].recHitRef()->position().phi() :erh[ieh].recHitRef()->position().y() );
+      // 	  emHitZ[ii].push_back( isEB?0:erh[ieh].recHitRef()->position().z() );
 	  
-      	}
-       }
+      // 	}
+      // }
 
-    //}
+    }
     //std::cout<<"HOW ABOUT NOW"<<std::endl;
     //HCAL element
       for(unsigned int ii=0;ii<nHcal;ii++) {
@@ -807,30 +764,25 @@ PFChargedHadronAnalyzer::analyze(const Event& iEvent,
 	hadHitY.push_back( tmp );
 	hadHitZ.push_back( tmp );
 
-	if(isMBMC_ || isSimu) {
-	        const std::vector< reco::PFRecHitFraction > erh=ehcal.clusterRef()->recHitFractions();
-	cout<<"Number of Rechits: "<<erh.size()<<endl;
-	  for(unsigned int ieh=0;ieh<erh.size();ieh++) {
+	//  if(isMBMC_ || isSimu) {
+	//         const std::vector< reco::PFRecHitFraction > erh=ehcal.clusterRef()->recHitFractions();
+	//   for(unsigned int ieh=0;ieh<erh.size();ieh++) {
 
-	    hadHitF[ii].push_back( erh[ieh].fraction() );
+	//     hadHitF[ii].push_back( erh[ieh].fraction() );
       
-	    hadHitE[ii].push_back(  erh[ieh].recHitRef()->energy() );
+	//     hadHitE[ii].push_back(  erh[ieh].recHitRef()->energy() );
       
-	    cout<<" rechit "<<ieh<<" =====> "<<erh[ieh].recHitRef()->energy()<<"  "<<
-	       erh[ieh].fraction()<<" / "<<erh[ieh].recHitRef()->position().x()
-	     	<<"  "<<erh[ieh].recHitRef()->position().y()<<endl;
-/**
-	    bool isHB= erh[ieh].recHitRef()->layer()==1;
-	    hadHitX[ii].push_back( isHB?erh[ieh].recHitRef()->position().eta() :erh[ieh].recHitRef()->position().x() );
-	    hadHitY[ii].push_back( isHB?erh[ieh].recHitRef()->position().phi() :erh[ieh].recHitRef()->position().y() );
-	    hadHitZ[ii].push_back( isHB?0:erh[ieh].recHitRef()->position().z() );
-**/
-	    hadHitX[ii].push_back( erh[ieh].recHitRef()->position().x() );
-	    hadHitY[ii].push_back( erh[ieh].recHitRef()->position().y() );
-	    hadHitZ[ii].push_back( erh[ieh].recHitRef()->position().z() );
-	
-	  }
-	}
+	//     // cout<<" rechit "<<ieh<<" =====> "<<erh[ieh].recHitRef()->energy()<<"  "<<
+	//     //   erh[ieh].fraction()<<" / "<<erh[ieh].recHitRef()->position().Eta()
+	//     // 	<<"  "<<erh[ieh].recHitRef()->position().Phi()<<endl;
+
+	//     bool isHB= erh[ieh].recHitRef()->layer()==1;
+	//     hadHitX[ii].push_back( isHB?erh[ieh].recHitRef()->position().eta() :erh[ieh].recHitRef()->position().x() );
+	//     hadHitY[ii].push_back( isHB?erh[ieh].recHitRef()->position().phi() :erh[ieh].recHitRef()->position().y() );
+	//     hadHitZ[ii].push_back( isHB?0:erh[ieh].recHitRef()->position().z() );
+	  
+	//   }
+	// }
 
       }
 

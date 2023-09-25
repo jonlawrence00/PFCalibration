@@ -1,0 +1,110 @@
+508,542d507
+< /**
+< 	  PFCandidate d1 = ci->daughter(0);
+<           reco::SuperClusterRef sc = d1->superClusterRef();
+< 	  if(sc.isNull())
+< 	  {
+< 		cout<<"NULL PTR"<<endl;
+< 	  }
+<  	  std::vector< std::pair<DetId, float> > hitsAndFractions = sc->hitsAndFractions(); 
+< 	  float sc_totalE = 0;
+< 	  int sc_nRechits = 0;
+< 	  for (std::vector<reco::PFRecHit>::const_iterator it = pfRechitEcal->begin(); it != pfRechitEcal->end(); ++it) {
+< 	    double deta_ = eta_ - it->positionREP().eta();
+< 	    double dphi_ = dPhi(phi_, it->positionREP().phi() );
+< 	    double dR_ = std::sqrt(deta_*deta_+dphi_*dphi_);
+< 	    bool recHitinSC = false;
+< 	    double frac = 0;
+< 	    for( const auto& detitr : hitsAndFractions )
+< 	    {
+< 		DetId Did = detitr.first.rawId();
+< 		frac = detitr.second;
+< 		if(Did == it->detId())
+< 		{
+< 			recHitinSC = true;
+< 			break;
+< 		}
+< 	    }
+< 	    double recEn = it->energy()*frac;
+< 			
+< 	    if(recHitinSC && recEn > 0 ){
+< 		sc_totalE += recEn;
+< 		sc_nRechits +=1;
+< 	    }
+< 	  }
+< **/
+< 
+583,584d547
+< 	  //cout<<"Size of ecal supercluster rechits = "<<sc_nRechits<<endl;
+< 	  //cout<<"Total Ecal energy = "<<sc_totalE<<endl;
+745,750c708,713
+<       //vector<float> tmp;
+<       //emHitF.push_back( tmp );
+<       //emHitE.push_back( tmp );
+<       //emHitX.push_back( tmp );
+<       //emHitY.push_back( tmp );
+<       //emHitZ.push_back( tmp );
+---
+>       vector<float> tmp;
+>       emHitF.push_back( tmp );
+>       emHitE.push_back( tmp );
+>       emHitX.push_back( tmp );
+>       emHitY.push_back( tmp );
+>       emHitZ.push_back( tmp );
+798,807c761,769
+< 	//hadHitF.push_back( tmp );
+< 	//hadHitE.push_back( tmp );
+< 	//hadHitX.push_back( tmp );
+< 	//hadHitY.push_back( tmp );
+< 	//hadHitZ.push_back( tmp );
+< 
+< 	if(isMBMC_ || isSimu) {
+< 	        const std::vector< reco::PFRecHitFraction > erh=ehcal.clusterRef()->recHitFractions();
+< 	cout<<"Number of Rechits: "<<erh.size()<<endl;
+< 	  for(unsigned int ieh=0;ieh<erh.size();ieh++) {
+---
+> 	hadHitF.push_back( tmp );
+> 	hadHitE.push_back( tmp );
+> 	hadHitX.push_back( tmp );
+> 	hadHitY.push_back( tmp );
+> 	hadHitZ.push_back( tmp );
+> 
+> 	//  if(isMBMC_ || isSimu) {
+> 	//         const std::vector< reco::PFRecHitFraction > erh=ehcal.clusterRef()->recHitFractions();
+> 	//   for(unsigned int ieh=0;ieh<erh.size();ieh++) {
+809c771
+< 	    hadHitF[ii].push_back( erh[ieh].fraction() );
+---
+> 	//     hadHitF[ii].push_back( erh[ieh].fraction() );
+811c773
+< 	    hadHitE[ii].push_back(  erh[ieh].recHitRef()->energy() );
+---
+> 	//     hadHitE[ii].push_back(  erh[ieh].recHitRef()->energy() );
+813,827c775,785
+< 	    cout<<" rechit "<<ieh<<" =====> "<<erh[ieh].recHitRef()->energy()<<"  "<<
+< 	       erh[ieh].fraction()<<" / "<<erh[ieh].recHitRef()->position().x()
+< 	     	<<"  "<<erh[ieh].recHitRef()->position().y()<<endl;
+< /**
+< 	    bool isHB= erh[ieh].recHitRef()->layer()==1;
+< 	    hadHitX[ii].push_back( isHB?erh[ieh].recHitRef()->position().eta() :erh[ieh].recHitRef()->position().x() );
+< 	    hadHitY[ii].push_back( isHB?erh[ieh].recHitRef()->position().phi() :erh[ieh].recHitRef()->position().y() );
+< 	    hadHitZ[ii].push_back( isHB?0:erh[ieh].recHitRef()->position().z() );
+< **/
+< 	    hadHitX[ii].push_back( erh[ieh].recHitRef()->position().x() );
+< 	    hadHitY[ii].push_back( erh[ieh].recHitRef()->position().y() );
+< 	    hadHitZ[ii].push_back( erh[ieh].recHitRef()->position().z() );
+< 	
+< 	  }
+< 	}
+---
+> 	//     // cout<<" rechit "<<ieh<<" =====> "<<erh[ieh].recHitRef()->energy()<<"  "<<
+> 	//     //   erh[ieh].fraction()<<" / "<<erh[ieh].recHitRef()->position().Eta()
+> 	//     // 	<<"  "<<erh[ieh].recHitRef()->position().Phi()<<endl;
+> 
+> 	//     bool isHB= erh[ieh].recHitRef()->layer()==1;
+> 	//     hadHitX[ii].push_back( isHB?erh[ieh].recHitRef()->position().eta() :erh[ieh].recHitRef()->position().x() );
+> 	//     hadHitY[ii].push_back( isHB?erh[ieh].recHitRef()->position().phi() :erh[ieh].recHitRef()->position().y() );
+> 	//     hadHitZ[ii].push_back( isHB?0:erh[ieh].recHitRef()->position().z() );
+> 	  
+> 	//   }
+> 	// }
