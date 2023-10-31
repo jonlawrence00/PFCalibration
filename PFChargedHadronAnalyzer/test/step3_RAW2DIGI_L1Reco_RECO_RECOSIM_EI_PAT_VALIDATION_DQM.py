@@ -25,7 +25,7 @@ process.load('Configuration.StandardSequences.EndOfProcess_cff')
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(10), #NEvents
+    input = cms.untracked.int32(10000), #NEvents
     output = cms.optional.untracked.allowed(cms.int32,cms.PSet)
 )
 

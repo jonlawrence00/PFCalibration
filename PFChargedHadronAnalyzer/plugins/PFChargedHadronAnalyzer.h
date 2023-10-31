@@ -121,7 +121,7 @@ class PFChargedHadronAnalyzer : public edm::EDAnalyzer {
   int charge_;
   std::vector<float> dr_,Eecal_,Ehcal_,pfcID_;
   //bhumika Nov 2018
-  std::vector<float> EcalRechit_posx_,EcalRechit_posy_,EcalRechit_posz_,EcalRechit_E_,HcalRechit_posx_,HcalRechit_posy_,HcalRechit_posz_,HcalRechit_E_,EcalRechit_dr_,EcalRechit_depth_,HcalRechit_dr_,HcalRechit_depth_,HcalRechit_eta_,HcalRechit_phi_,EcalRechit_eta_,EcalRechit_phi_,EcalPFclustereta_,HcalPFclustereta_;
+  std::vector<float> EcalRechit_posx_,EcalRechit_posy_,EcalRechit_posz_,EcalRechit_E_,HcalRechit_posx_,HcalRechit_posy_,HcalRechit_posz_,HcalRechit_E_,EcalRechit_dr_,EcalRechit_depth_,HcalRechit_dr_,HcalRechit_depth_,HcalRechit_eta_,HcalRechit_phi_,EcalRechit_eta_,EcalRechit_phi_,EcalPFclustereta_,HcalPFclustereta_,emHitX,emHitY,emHitZ,emHitE,emHitF,hadHitX,hadHitY,hadHitZ,hadHitE,hadHitF;
   std::vector<float> correcal_,corrhcal_;
 
   float Ccorrecal_,Ccorrhcal_,HcalRechit_totE_,EcalRechit_totE_;
@@ -183,6 +183,7 @@ class PFChargedHadronAnalyzer : public edm::EDAnalyzer {
 
   std::vector<float> cluHadE;
 
+/**
   std::vector<std::vector<float> > emHitX; //eta for barrel
   std::vector<std::vector<float> > emHitY; //phi for barrel
   std::vector<std::vector<float> > emHitZ;
@@ -194,6 +195,7 @@ class PFChargedHadronAnalyzer : public edm::EDAnalyzer {
   std::vector<std::vector<float> > hadHitZ;
   std::vector<std::vector<float> > hadHitE;
   std::vector<std::vector<float> > hadHitF;
+**/
 
   //Basic clusters ECAL
   std::vector<float> bcEcalE;

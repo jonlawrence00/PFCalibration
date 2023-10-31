@@ -8,7 +8,8 @@ source /home/apps/spack/share/spack/setup-env.sh
 spack load python@3.8.2
 source /home/apps/iiser/pytorch-venv/bin/activate
 echo '-========================================================='
-cd /home/bkansal/work/Bhumika/The_DRN_for_HGCAL
+#cd /home/bkansal/work/Bhumika/The_DRN_for_H
+cd /eos/user/c/cgupta/MyProjects/HadronCalib/PFcalibration/CMSSW_12_6_4/src/PFCalibration/DRN_for_PF
 #cd <path to the directory where preparehGCAL & other codes are available>
 #python tmp.py
 #./prepareHGCAL &>> ./pickle_barrel.log

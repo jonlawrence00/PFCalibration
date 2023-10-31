@@ -169,17 +169,17 @@ PFChargedHadronAnalyzer::PFChargedHadronAnalyzer(const edm::ParameterSet& iConfi
   // s->Branch("genEta",&genEta );
   // s->Branch("genPhi",&genPhi );
 
-  // s->Branch("emHitX",&emHitX );
-  // s->Branch("emHitY",&emHitY );
-  // s->Branch("emHitZ",&emHitZ );
-  // s->Branch("emHitE",&emHitE );
-  // s->Branch("emHitF",&emHitF );
+  s->Branch("emHitX",&emHitX );
+  s->Branch("emHitY",&emHitY );
+  s->Branch("emHitZ",&emHitZ );
+  s->Branch("emHitE",&emHitE );
+  s->Branch("emHitF",&emHitF );
 
-  // s->Branch("hadHitX",&hadHitX );
-  // s->Branch("hadHitY",&hadHitY );
-  // s->Branch("hadHitZ",&hadHitZ );
-  // s->Branch("hadHitE",&hadHitE );
-  // s->Branch("hadHitF",&hadHitF );
+  s->Branch("hadHitX",&hadHitX );
+  s->Branch("hadHitY",&hadHitY );
+  s->Branch("hadHitZ",&hadHitZ );
+  s->Branch("hadHitE",&hadHitE );
+  s->Branch("hadHitF",&hadHitF );
 
   //BasicCluster ECAL
 
@@ -743,11 +743,11 @@ PFChargedHadronAnalyzer::analyze(const Event& iEvent,
       distEcalTrk.push_back( d );
       //cout<<" ecal loop -> "<<iECAL[ii]<<"  "<<d<<" eta "<<eta_ECAL<<"   "<<phi_ECAL<<" <==>  "<<eta<<"   "<<phi<<endl;
       vector<float> tmp;
-      emHitF.push_back( tmp );
-      emHitE.push_back( tmp );
-      emHitX.push_back( tmp );
-      emHitY.push_back( tmp );
-      emHitZ.push_back( tmp );
+      //emHitF.push_back( tmp );
+      //emHitE.push_back( tmp );
+      //emHitX.push_back( tmp );
+      //emHitY.push_back( tmp );
+      //emHitZ.push_back( tmp );
 
       
       //std::cout<<"***********LOOK AT ME"<<std::endl;
@@ -755,8 +755,8 @@ PFChargedHadronAnalyzer::analyze(const Event& iEvent,
       const std::vector< reco::PFRecHitFraction > erh=eecal.clusterRef()->recHitFractions();
 	cout<<"Number of Rechits: "<<erh.size()<<endl;
       for(unsigned int ieh=0;ieh<erh.size();ieh++) {
-	//emHitF[ii].push_back( erh[ieh].fraction() );
-	//emHitE[ii].push_back(  erh[ieh].recHitRef()->energy() );
+	emHitF.push_back( erh[ieh].fraction() );
+	emHitE.push_back(  erh[ieh].recHitRef()->energy() );
 	cout<<" rechit "<<ieh<<" =====> "<<erh[ieh].recHitRef()->energy()<<"  "<<erh[ieh].fraction()<<" / "<<erh[ieh].recHitRef()->position().x()<<"  "<<erh[ieh].recHitRef()->position().y()<<endl;
 /*
        	  bool isEB= erh[ieh].recHitRef()->layer()==-1;
@@ -764,9 +764,9 @@ PFChargedHadronAnalyzer::analyze(const Event& iEvent,
        	  emHitY[ii].push_back( isEB?erh[ieh].recHitRef()->position().phi() :erh[ieh].recHitRef()->position().y() );
        	  emHitZ[ii].push_back( isEB?0:erh[ieh].recHitRef()->position().z() );
 */
-	    emHitX[ii].push_back( erh[ieh].recHitRef()->position().x() );
-	    emHitY[ii].push_back( erh[ieh].recHitRef()->position().y() );
-	    emHitZ[ii].push_back( erh[ieh].recHitRef()->position().z() );
+	    emHitX.push_back( erh[ieh].recHitRef()->position().x() );
+	    emHitY.push_back( erh[ieh].recHitRef()->position().y() );
+	    emHitZ.push_back( erh[ieh].recHitRef()->position().z() );
       }
       
 	  
@@ -801,20 +801,20 @@ PFChargedHadronAnalyzer::analyze(const Event& iEvent,
 	//==================
 	//cout<<" hcal loop -> "<<iHCAL[ii]<<"  "<<d<<" eta "<<eta_HCAL<<"   "<<phi_HCAL<<" <==>  "<<eta<<"   "<<phi<<endl;
 	//	vector<float> tmp;
-	hadHitF.push_back( tmp );
-	hadHitE.push_back( tmp );
-	hadHitX.push_back( tmp );
-	hadHitY.push_back( tmp );
-	hadHitZ.push_back( tmp );
+	//hadHitF.push_back( tmp );
+	//hadHitE.push_back( tmp );
+	//hadHitX.push_back( tmp );
+	//hadHitY.push_back( tmp );
+	//hadHitZ.push_back( tmp );
 
 	if(isMBMC_ || isSimu) {
 	        const std::vector< reco::PFRecHitFraction > erh=ehcal.clusterRef()->recHitFractions();
 	cout<<"Number of Rechits: "<<erh.size()<<endl;
 	  for(unsigned int ieh=0;ieh<erh.size();ieh++) {
 
-	    hadHitF[ii].push_back( erh[ieh].fraction() );
+	    hadHitF.push_back( erh[ieh].fraction() );
       
-	    hadHitE[ii].push_back(  erh[ieh].recHitRef()->energy() );
+	    hadHitE.push_back(  erh[ieh].recHitRef()->energy() );
       
 	    cout<<" rechit "<<ieh<<" =====> "<<erh[ieh].recHitRef()->energy()<<"  "<<
 	       erh[ieh].fraction()<<" / "<<erh[ieh].recHitRef()->position().x()
@@ -825,9 +825,9 @@ PFChargedHadronAnalyzer::analyze(const Event& iEvent,
 	    hadHitY[ii].push_back( isHB?erh[ieh].recHitRef()->position().phi() :erh[ieh].recHitRef()->position().y() );
 	    hadHitZ[ii].push_back( isHB?0:erh[ieh].recHitRef()->position().z() );
 **/
-	    hadHitX[ii].push_back( erh[ieh].recHitRef()->position().x() );
-	    hadHitY[ii].push_back( erh[ieh].recHitRef()->position().y() );
-	    hadHitZ[ii].push_back( erh[ieh].recHitRef()->position().z() );
+	    hadHitX.push_back( erh[ieh].recHitRef()->position().x() );
+	    hadHitY.push_back( erh[ieh].recHitRef()->position().y() );
+	    hadHitZ.push_back( erh[ieh].recHitRef()->position().z() );
 	
 	  }
 	}
