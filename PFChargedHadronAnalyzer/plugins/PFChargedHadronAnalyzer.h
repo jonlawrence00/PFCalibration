@@ -8,7 +8,7 @@
 
 // user include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
-#include "FWCore/Framework/interface/EDAnalyzer.h"
+#include "FWCore/Framework/interface/one/EDAnalyzer.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
 #include "FWCore/Framework/interface/Event.h"
@@ -48,17 +48,14 @@
 #include "DataFormats/HcalRecHit/interface/HBHERecHit.h"
 
 
-/**\class PFChargedHadronAnalyzer 
+/**\class PFChargedHadronAnalyzer
 \brief selects isolated charged hadrons from PF Charged Hadrons
 
 \author Patrick Janot
 \date   September 13, 2010
 */
 
-
-
-
-class PFChargedHadronAnalyzer : public edm::EDAnalyzer {
+class PFChargedHadronAnalyzer : public edm::one::EDAnalyzer<> {
  public:
 
   typedef reco::PFCandidateCollection::const_iterator CI;
@@ -66,15 +63,14 @@ class PFChargedHadronAnalyzer : public edm::EDAnalyzer {
   explicit PFChargedHadronAnalyzer(const edm::ParameterSet&);
 
   ~PFChargedHadronAnalyzer();
-  
+
   virtual void analyze(const edm::Event&, const edm::EventSetup&);
 
   virtual void beginRun(const edm::Run & r, const edm::EventSetup & c);
 
  private:
-  
 
-  /// PFCandidates in which we'll look for pile up particles 
+  /// PFCandidates in which we'll look for pile up particles
   edm::InputTag   inputTagPFCandidates_;
   edm::InputTag   inputTagPFSimParticles_;
   edm::InputTag   inputTagEcalPFRechit_;
@@ -88,34 +84,38 @@ class PFChargedHadronAnalyzer : public edm::EDAnalyzer {
 
   /// Min pt for charged hadrons
   double ptMin_;
-  
+
   /// Min p for charged hadrons
   double pMin_;
 
   /// Min hcal raw energy for charged hadrons
   double hcalMin_;
-  
+
   /// Max ecal raw energy to define a MIP
   double ecalMax_;
-  
+
   /// Min number of pixel hits for charged hadrons
   int nPixMin_;
-  
+
   // isMInbias simulation
   bool isMBMC_;
 
   /// Min number of track hits for charged hadrons
   std::vector<int> nHitMin_;
   std::vector<double> nEtaMin_;
-  
+
   // Number of tracks after cuts
   std::vector<unsigned int> nCh;
   std::vector<unsigned int> nEv;
-  
+
+  // Consider on ly leading (smallest dR) clusters?
+  bool leadingPFNHOnly_;
+  bool leadingPFPhotonOnly_;
+
   std::string outputfile_;
   TFile *tf1;
   TTree* s;
-  
+
   float true_,p_,ecal_,hcal_,eta_,phi_,ho_;
   float etaEcal_,phiEcal_;
   int charge_;
@@ -123,33 +123,14 @@ class PFChargedHadronAnalyzer : public edm::EDAnalyzer {
   //bhumika Nov 2018
   std::vector<float> EcalRechit_posx_,EcalRechit_posy_,EcalRechit_posz_,EcalRechit_E_,HcalRechit_posx_,HcalRechit_posy_,HcalRechit_posz_,HcalRechit_E_,EcalRechit_dr_,EcalRechit_depth_,HcalRechit_dr_,HcalRechit_depth_,HcalRechit_eta_,HcalRechit_phi_,EcalRechit_eta_,EcalRechit_phi_,EcalPFclustereta_,HcalPFclustereta_,emHitX,emHitY,emHitZ,emHitE,emHitF,hadHitX,hadHitY,hadHitZ,hadHitE,hadHitF;
   std::vector<float> correcal_,corrhcal_;
+  std::vector<unsigned int> emHitIndex;
+  std::vector<unsigned int> hadHitIndex;
 
   float Ccorrecal_,Ccorrhcal_,HcalRechit_totE_,EcalRechit_totE_;
+  float emHitEtot,hadHitEtot;
+  float emHitEFtot,hadHitEFtot;
   size_t orun,oevt,olumiBlock,otime;
 
-  /* TH1F* h_phi = new TH1F("h_phi","phi w/o cut",90,-4.0,4.0); */
-
-
-  /* TH2F* h_pix_phi = new TH2F("h_pix_phi","Npix vs phi",90,-4.0,4.0,10,0,10); */
-
-
-  /* TH2F* h_pix_phi_valid_hits = new TH2F("h_pix_phi_valid_hits","Npix vs phi before iteration",90,-4.0,4.0,10,0,10); */
-
-  /* TH2F* h_pix_phi_Barrel = new TH2F("h_pix_phi_barrel","Npix vs phi in barrel",90,-4.0,4.0,10,0,10); */
-  /* TH2F* h_pix_phi_inTrack_EC = new TH2F("h_pix_phi_inTrack_EC","Npix vs phi EC,in tracker",90,-4.0,4.0,10,0,10); */
-  /* TH2F* h_pix_phi_outTrack_EC = new TH2F("h_pix_phi_outTrack_EC","Npix vs phi EC,outside tracker",90,-4.0,4.0,10,0,10); */
-
-
-  /* TH2F* h_hit_phi_Barrel = new TH2F("h_hit_phi_barrel","Nhit vs phi in barrel",90,-4.0,4.0,50,0,50); */
-  /* TH2F* h_hit_phi_inTrack_EC = new TH2F("h_hit_phi_inTrack_EC","Nhit vs phi EC,in tracker",90,-4.0,4.0,50,0,50); */
-  /* TH2F* h_hit_phi_outTrack_EC = new TH2F("h_hit_phi_outTrack_EC","Nhit vs phi EC,outside tracker",90,-4.0,4.0,10,0,10); */
-
-
-  /* TH1F* h_phi_1 = new TH1F("h_phi_1","phi w/o cut",90,-4.0,4.0); */
-  /* TH1F* h_phi_2 = new TH1F("h_phi_2","phi w/o cut",90,-4.0,4.0); */
-  /* TH1F* h_phi_3 = new TH1F("h_phi_3","phi w/o cut",90,-4.0,4.0); */
-  /* TH1F* h_phi_4 = new TH1F("h_phi_4","phi w/o cut",90,-4.0,4.0); */
-  /* TH1F* h_phi_5 = new TH1F("h_phi_5","phi w/o cut",90,-4.0,4.0); */
   TH1F* h_true_barrel = new TH1F("h_true_barrel","input Energy in barrel",500,0,500);
   TH1F* h_true_ec_in = new TH1F("h_true_ec_in","input Energy in EC,in tracker",500,0,500);
   TH1F* h_true_ec_out = new TH1F("h_true_ec_out","input Energy in EC,out tracker",500,0,500);
@@ -171,10 +152,11 @@ class PFChargedHadronAnalyzer : public edm::EDAnalyzer {
 
   std::vector<float> distEcalTrk;
 
-
   std::vector<float> cluHcalE;
   std::vector<float> cluHcalEta;
   std::vector<float> cluHcalPhi;
+
+  float cluEcalEtot,cluHcalEtot;
 
   std::vector<float> distHcalTrk;
   std::vector<std::vector<float> > distHcalEcal;
@@ -182,20 +164,6 @@ class PFChargedHadronAnalyzer : public edm::EDAnalyzer {
   std::vector<int> pfcsID;
 
   std::vector<float> cluHadE;
-
-/**
-  std::vector<std::vector<float> > emHitX; //eta for barrel
-  std::vector<std::vector<float> > emHitY; //phi for barrel
-  std::vector<std::vector<float> > emHitZ;
-  std::vector<std::vector<float> > emHitE;
-  std::vector<std::vector<float> > emHitF;
-
-  std::vector<std::vector<float> > hadHitX;
-  std::vector<std::vector<float> > hadHitY;
-  std::vector<std::vector<float> > hadHitZ;
-  std::vector<std::vector<float> > hadHitE;
-  std::vector<std::vector<float> > hadHitF;
-**/
 
   //Basic clusters ECAL
   std::vector<float> bcEcalE;
@@ -210,31 +178,22 @@ class PFChargedHadronAnalyzer : public edm::EDAnalyzer {
   std::vector<float> EcalRecHits;
   std::vector<float> ESRecHits;
   std::vector<float> HcalRecHits;
-  
+
   std::vector<float> EcalRecHitsDr;
   std::vector<float> ESRecHitsDr;
   std::vector<float> HcalRecHitsDr;
-  
 
   const CaloGeometry*    theCaloGeom;
 
-
   //  void SaveRecHits(const edm::Event& iEvent, float eta_, float phi_);
-
 
   void SaveSimHit(const edm::Event& iEvent, float eta_, float phi_);
   float Eta( float theta);
-  //  float dR( float eta1, float eta2, float phi1, float phi2);
-  // float dPhi( float phi1, float phi2 );
-  // float phi( float x, float y );
-
-
 
   /// verbose ?
   bool   verbose_;
-  
-  float dR(float eta1, float eta2, float phi1, float phi2 );
 
+  float dR(float eta1, float eta2, float phi1, float phi2 );
 
   float phi(float, float);
   float dPhi(float, float);
