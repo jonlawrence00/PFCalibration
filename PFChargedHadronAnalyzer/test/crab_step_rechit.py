@@ -3,7 +3,7 @@ config = Configuration()
 
 config.section_("General")
 
-config.General.requestName = 'PGun_step3_RECO_1264_200_500_rechit'
+config.General.requestName = 'PGun_step3_RECO_1264_0p2_200_rechit'
 config.General.workArea = 'crab_projects'
 
 #optional
@@ -26,8 +26,8 @@ config.JobType.maxMemoryMB=3000
 config.section_("Data")
 
 #config.Data.inputDataset = '/Single_Pion_gun_E_2to200_14TeV_pythia8/Run3Summer21DR-NoPURAWRECO_120X_mcRun3_2021_realistic_v6-v2/GEN-SIM-RAW'
-#config.Data.inputDataset = '/SinglePionGun_E0p2to200/Run3Winter23Digi-NoPUGTv4_126X_mcRun3_2023_forPU65_v4-v2/GEN-SIM-RAW'
-config.Data.inputDataset = '/SinglePionGun_E200to500/Run3Winter23Digi-NoPUGTv4_126X_mcRun3_2023_forPU65_v4-v2/GEN-SIM-RAW'
+config.Data.inputDataset = '/SinglePionGun_E0p2to200/Run3Winter23Digi-NoPUGTv4_126X_mcRun3_2023_forPU65_v4-v2/GEN-SIM-RAW'
+#config.Data.inputDataset = '/SinglePionGun_E200to500/Run3Winter23Digi-NoPUGTv4_126X_mcRun3_2023_forPU65_v4-v2/GEN-SIM-RAW'
 #config.Data.inputDataset = '/Single_Pion_gun_E_2to200_14TeV_pythia8/Run3Summer21DR-NoPURAWRECO_120X_mcRun3_2021_realistic_v6-v2/GEN-SIM-RAW'
 #config.Data.inputDataset = '/Single_Pion_gun_E_2to200_14TeV_pythia8/Run3Summer21DR-NoPURAWRECO_120X_mcRun3_2021_realistic_v6-v2/GEN-SIM-RECO'
 #config.Data.inputDataset = '/Single_Pion_gun_E_200to500_14TeV_pythia8/Run3Summer21DR-NoPURAWRECO_120X_mcRun3_2021_realistic_v6-v2/GEN-SIM-RECO'
@@ -45,11 +45,11 @@ config.Data.unitsPerJob = 1
 config.Data.publication = False
 #config.Data.publishDBS = '' default for the moment
 #config.Data.outLFN = '/home/spandey/t3store/PF_PGun'
-config.Data.outLFNDirBase = '/store/user/bkansal/step3_rechit/PGun_step3_RECO_1264_200_500_rechit/'
+config.Data.outLFNDirBase = '/store/user/cgupta'
 
 
 config.section_("Site")
-config.Site.storageSite = 'T2_IN_TIFR'
+config.Site.storageSite = 'T3_CH_CERNBOX'
 # config.Site.blacklist = ['T2_CH_*', 'T2_US_*']
 # # config.Site.whitelist = ['T2_UK_London_IC','T2_US_*']                                            
 # config.Site.whitelist = ['T2_UA_KIPT','T2_IN_TIFR']

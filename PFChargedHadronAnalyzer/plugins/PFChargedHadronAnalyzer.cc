@@ -347,6 +347,19 @@ PFChargedHadronAnalyzer::analyze(const Event& iEvent,
       // return; // KenH: comment out when just focusing on the case with a reconstructed track
       // KenH
       double emHitEtotTmp=0, hadHitEtotTmp=0, cluEcalEtotTmp=0, cluHcalEtotTmp=0;
+	//CG
+	  emHitF.clear();
+	  emHitE.clear();
+	  emHitX.clear();
+	  emHitY.clear();
+	  emHitZ.clear();
+	  emHitIndex.clear();
+	  hadHitF.clear();
+	  hadHitE.clear();
+	  hadHitX.clear();
+	  hadHitY.clear();
+	  hadHitZ.clear();
+	  hadHitIndex.clear();
 
       // KenH - Prepare to possibly select only minDR PFPhoton and PFNeutralHadron
       int nPFNH=0;
@@ -483,6 +496,7 @@ PFChargedHadronAnalyzer::analyze(const Event& iEvent,
 	if (( pfc.particleId() == 4 && dR < 0.2 ) ||
 	    ( pfc.particleId() == 5 && dR < 0.4 )){
 
+/**
 	  emHitF.clear();
 	  emHitE.clear();
 	  emHitX.clear();
@@ -495,6 +509,7 @@ PFChargedHadronAnalyzer::analyze(const Event& iEvent,
 	  hadHitY.clear();
 	  hadHitZ.clear();
 	  hadHitIndex.clear();
+**/
 
 	  const PFCandidate::ElementsInBlocks& theElements = pfc.elementsInBlocks();
 	  if( theElements.empty() ) continue;
@@ -769,6 +784,16 @@ PFChargedHadronAnalyzer::analyze(const Event& iEvent,
     double Ecalrechit_energy=0, Hcalrechit_energy=0, Ecalrechit_en=0, Hcalrechit_en=0,ecalrechit=0,hcalrechit=0;
     // KenH
     double emHitEtotTmp=0, hadHitEtotTmp=0, cluEcalEtotTmp=0, cluHcalEtotTmp=0;
+	    emHitF.clear();
+	    emHitE.clear();
+	    emHitX.clear();
+	    emHitY.clear();
+	    emHitZ.clear();
+	    hadHitF.clear();
+	    hadHitE.clear();
+	    hadHitX.clear();
+	    hadHitY.clear();
+	    hadHitZ.clear();
 
 	    const reco::PFBlockRef blockRef = theElements[0].first;
 	    PFBlock::LinkData linkData =  blockRef->linkData();
@@ -992,16 +1017,6 @@ PFChargedHadronAnalyzer::analyze(const Event& iEvent,
 	    HcalRechit_phi_.clear();
 	    EcalPFclustereta_.clear();
 	    HcalPFclustereta_.clear();
-	    emHitF.clear();
-	    emHitE.clear();
-	    emHitX.clear();
-	    emHitY.clear();
-	    emHitZ.clear();
-	    hadHitF.clear();
-	    hadHitE.clear();
-	    hadHitX.clear();
-	    hadHitY.clear();
-	    hadHitZ.clear();
 
 	    //ECAL elements
             // Loop over ECAL clusters

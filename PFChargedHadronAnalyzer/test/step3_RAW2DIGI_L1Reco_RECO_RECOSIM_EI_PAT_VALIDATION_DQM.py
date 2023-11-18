@@ -25,7 +25,7 @@ process.load('Configuration.StandardSequences.EndOfProcess_cff')
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(10000), #NEvents
+    input = cms.untracked.int32(1000), #NEvents
     output = cms.optional.untracked.allowed(cms.int32,cms.PSet)
 )
 
@@ -85,7 +85,7 @@ process.RECOSIMoutput = cms.OutputModule("PoolOutputModule",
         filterName = cms.untracked.string('')
     ),
 #    fileName = cms.untracked.string('file:JME-Run3Summer21DRPremix-00001_2_1.root'),
-    fileName = cms.untracked.string('file:step3_reco.root'),
+    fileName = cms.untracked.string('file:step3_kh.root'),
     outputCommands = process.RECOSIMEventContent.outputCommands,
     splitLevel = cms.untracked.int32(0)
 )
@@ -160,7 +160,8 @@ process.EDA = cms.EndPath(process.pfChargedHadronAnalyzer)
 process.gRR = cms.EndPath(process.genReReco)
 
 # Schedule definition
-process.schedule = cms.Schedule(process.raw2digi_step,process.L1Reco_step,process.reconstruction_step,process.recosim_step,process.endjob_step,process.RECOSIMoutput_step,process.gRR,process.EDA)
+#process.schedule = cms.Schedule(process.raw2digi_step,process.L1Reco_step,process.reconstruction_step,process.recosim_step,process.endjob_step,process.RECOSIMoutput_step,process.gRR,process.EDA)
+process.schedule = cms.Schedule(process.raw2digi_step,process.L1Reco_step,process.reconstruction_step,process.recosim_step,process.endjob_step,process.gRR,process.EDA) #NO RECO output
 
 from PhysicsTools.PatAlgos.tools.helpers import associatePatAlgosToolsTask
 associatePatAlgosToolsTask(process)
