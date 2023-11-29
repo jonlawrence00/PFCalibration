@@ -140,6 +140,8 @@ process.particleFlowSimParticle.ParticleFilter = cms.PSet(
         invisibleParticles = cms.vint32()
 )
 
+process.particleFlowTmp.postMuonCleaning = False
+
 process.genReReco = cms.Sequence(#process.generator+                                                                                 
                                  #process.genParticles+                                                                              
                                  #process.genJetParticles+                                                                           
@@ -167,7 +169,7 @@ from PhysicsTools.PatAlgos.tools.helpers import associatePatAlgosToolsTask
 associatePatAlgosToolsTask(process)
 
 #Setup FWK for multithreaded
-process.options.numberOfThreads = 1
+process.options.numberOfThreads = 32
 process.options.numberOfStreams = 0
 process.options.numberOfConcurrentLuminosityBlocks = 2
 process.options.eventSetup.numberOfConcurrentIOVs = 1
