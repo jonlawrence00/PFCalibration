@@ -908,12 +908,14 @@ class Extract:
 
         t0=time()
         print("Reading Ecal Energy...")
-        ecal = self.tree['ecalEn'].array()#trueBeamEnergy'].array()                                                
+        #ecal = self.tree['ecalEn'].array()#trueBeamEnergy'].array()                                                
+        ecal = self.tree['ecal'].array()#trueBeamEnergy'].array()                                                
         print("\ttook %0.3f seconds"%(time()-t0))
 
         t0=time()
         print("Reading Hcal Energy...")
-        hcal = self.tree['hcalEn'].array()#trueBeamEnergy'].array()                                                
+        #hcal = self.tree['hcalEn'].array()#trueBeamEnergy'].array()                                                
+        hcal = self.tree['hcal'].array()#trueBeamEnergy'].array()                                                
         print("\ttook %0.3f seconds"%(time()-t0))
 
 
