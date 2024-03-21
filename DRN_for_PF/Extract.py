@@ -850,83 +850,87 @@ class Extract:
         print("Reading in HGCAL branches:")
 
         t0=time()
+        print("Reading trueBeanEnergy...")
+        trueE = self.tree['true'].array()#trueBeamEnergy'].array()
+        print("\ttook %0.3f seconds"%(time()-t0))
+
+
+        t0=time()
         print("Reading Hcal rechit_x...")
         HcalRechit_X = self.tree['HcalRechit_posx'].array()
         print("\ttook %0.3f seconds"%(time()-t0))
 
+        g_filter = (trueE>0) & np.array([ len(HcalRechit_X[i])>0 for i in range(len(HcalRechit_X)) ])
+        trueE = trueE[g_filter]
+        HcalRechit_X = HcalRechit_X[g_filter]
                 
         t0=time()
         print("Reading Hcal rechit_y...")
-        HcalRechit_Y = self.tree['HcalRechit_posy'].array()
+        HcalRechit_Y = self.tree['HcalRechit_posy'].array()[g_filter]
         print("\ttook %0.3f seconds"%(time()-t0))
         
         t0=time()
         print("Reading Hcal rechit_z...")
-        HcalRechit_Z = self.tree['HcalRechit_posz'].array()#comb_rechit_z_trimAhcal'].array()#combined_rechit_z'].array()
+        HcalRechit_Z = self.tree['HcalRechit_posz'].array()[g_filter]#comb_rechit_z_trimAhcal'].array()#combined_rechit_z'].array()
         print("\ttook %0.3f seconds"%(time()-t0))
 
         
         t0=time()
         print("Reading Ecal rechit_x...")
-        EcalRechit_X = self.tree['EcalRechit_posx'].array()
+        EcalRechit_X = self.tree['EcalRechit_posx'].array()[g_filter]
         print("\ttook %0.3f seconds"%(time()-t0))
 
         t0=time()
         print("Reading Ecal rechit_y...")
-        EcalRechit_Y = self.tree['EcalRechit_posy'].array()
+        EcalRechit_Y = self.tree['EcalRechit_posy'].array()[g_filter]
         print("\ttook %0.3f seconds"%(time()-t0))
 
         t0=time()
         print("Reading Ecal rechit_z...")
-        EcalRechit_Z = self.tree['EcalRechit_posz'].array()#comb_rechit_z_trimAhcal'].array()
+        EcalRechit_Z = self.tree['EcalRechit_posz'].array()[g_filter]#comb_rechit_z_trimAhcal'].array()
         print("\ttook %0.3f seconds"%(time()-t0))
 
         t0=time()
         print("Reading Hcal rechit_energy...")
-        HcalrecHitEn = self.tree['HcalRechit_E'].array()
+        HcalrecHitEn = self.tree['HcalRechit_E'].array()[g_filter]
         print("\ttook %0.3f seconds"%(time()-t0))
 
         t0=time()
         print("Reading Hcal cluster eta ...")
-        HcalPFclustereta = self.tree['HcalPFclustereta'].array()
+        HcalPFclustereta = self.tree['HcalPFclustereta'].array()[g_filter]
         print("\ttook %0.3f seconds"%(time()-t0))
 
         t0=time()
         print("Reading Ecal cluster eta ...")
-        EcalPFclustereta = self.tree['EcalPFclustereta'].array()
+        EcalPFclustereta = self.tree['EcalPFclustereta'].array()[g_filter]
         print("\ttook %0.3f seconds"%(time()-t0))
 
         t0=time()
         print("Reading Ecal rechit_energy...")
-        EcalrecHitEn = self.tree['EcalRechit_E'].array()
-        print("\ttook %0.3f seconds"%(time()-t0))
-
-        t0=time()
-        print("Reading trueBeanEnergy...")
-        trueE = self.tree['true'].array()#trueBeamEnergy'].array()
+        EcalrecHitEn = self.tree['EcalRechit_E'].array()[g_filter]
         print("\ttook %0.3f seconds"%(time()-t0))
 
         t0=time()
         print("Reading Ecal Energy...")
         #ecal = self.tree['ecalEn'].array()#trueBeamEnergy'].array()                                                
-        ecal = self.tree['ecal'].array()#trueBeamEnergy'].array()                                                
+        ecal = self.tree['ecal'].array()[g_filter]#trueBeamEnergy'].array()                                                
         print("\ttook %0.3f seconds"%(time()-t0))
 
         t0=time()
         print("Reading Hcal Energy...")
         #hcal = self.tree['hcalEn'].array()#trueBeamEnergy'].array()                                                
-        hcal = self.tree['hcal'].array()#trueBeamEnergy'].array()                                                
+        hcal = self.tree['hcal'].array()[g_filter]#trueBeamEnergy'].array()                                                
         print("\ttook %0.3f seconds"%(time()-t0))
 
 
         t0=time()
         print("Reading trueBeam eta...")
-        eta = self.tree['eta'].array()#trueBeamEnergy'].array()                                                 
+        eta = self.tree['eta'].array()[g_filter]#trueBeamEnergy'].array()                                                 
         print("\ttook %0.3f seconds"%(time()-t0))
 
         t0=time()
         print("Reading BeanEnergy...")
-        beamEn = self.tree['HcalRechit_totE'].array()#beamEnergy'].array()
+        beamEn = self.tree['HcalRechit_totE'].array()[g_filter]#beamEnergy'].array()
         print("\ttook %0.3f seconds"%(time()-t0))
        ############################################## 
        ## define boolean indexing array to select particular elements out of true energy
@@ -1015,6 +1019,7 @@ class Extract:
 
         print("Dumping:")
         t0=time()
+
         with open("%s/HcalRechit_X.pickle"%self.outfolder, 'wb') as f:
             pickle.dump(HcalRechit_X, f, protocol = 4)
         print("\tDumped HcalRechit_X in %0.3f seconds"%(time()-t0))
