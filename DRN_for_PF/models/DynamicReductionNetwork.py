@@ -1,11 +1,11 @@
 import torch
 import torch.nn as nn
-from .DynamicReductionNetworkJit import DynamicReductionNetworkJit
+from .DynamicReductionNetworkJit_copy import DynamicReductionNetworkJit
 from .DynamicReductionNetworkOld import DynamicReductionNetworkOld
 
 class DynamicReductionNetwork(nn.Module):
     '''
-    This model iteratively contracts nearest neighbour graphs 
+    This model iteratively contracts nearest neighbour graphs
     until there is one output node.
     The latent space trained to group useful features at each level
     of aggregration.
@@ -16,19 +16,19 @@ class DynamicReductionNetwork(nn.Module):
     @param input_dim: dimension of input features
     @param hidden_dim: dimension of hidden layers
     @param output_dim: dimension of output
-    
+
     @param k: size of k-nearest neighbor graphs
-    @param aggr: message passing aggregation scheme. 
+    @param aggr: message passing aggregation scheme.
     @param norm: feature normaliztion. None is equivalent to all 1s (ie no scaling)
     @param loop: boolean for presence/absence of self loops in k-nearest neighbor graphs
     @param pool: type of pooling in aggregation layers. Choices are 'add', 'max', 'mean'
-    
+
     @param agg_layers: number of aggregation layers. Must be >=0
     @param mp_layers: number of layers in message passing networks. Must be >=1
     @param in_layers: number of layers in inputnet. Must be >=1
     @param out_layers: number of layers in outputnet. Must be >=1
     '''
-    def __init__(self, input_dim=4, hidden_dim=64, output_dim=1, k=16, aggr='add', norm=None, 
+    def __init__(self, input_dim=4, hidden_dim=64, output_dim=1, k=16, aggr='add', norm=None,
                  loop=True, pool='max',
                  agg_layers=2, mp_layers=2, in_layers=1, out_layers=3,
                  graph_features = False,
@@ -40,7 +40,7 @@ class DynamicReductionNetwork(nn.Module):
         DRN = DynamicReductionNetworkJit
         if original_drn:
             DRN = DynamicReductionNetworkOld
-        
+
         drn = DRN(
             input_dim=input_dim,
             hidden_dim=hidden_dim,
@@ -67,10 +67,13 @@ class DynamicReductionNetwork(nn.Module):
         '''
         Push the batch 'data' through the network
         '''
+
         if isinstance(self.drn, DynamicReductionNetworkOld):
+            #print("if isinstance(self.drn, DynamicReductionNetworkOld):")
             return self.drn(data)
-        
+        #print("big time hello")
         return self.drn(
+
             data.x,
             data.batch if hasattr(data, 'batch') else torch.zeros((data.x.shape()[0], ),
                                                                   dtype=torch.int64,

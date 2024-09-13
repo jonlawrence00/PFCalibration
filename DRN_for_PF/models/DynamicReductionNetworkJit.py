@@ -25,7 +25,7 @@ from torch_geometric.utils.num_nodes import maybe_num_nodes
 from torch_geometric.utils import normalized_cut
 from torch_geometric.utils import remove_self_loops
 from torch_geometric.nn import (max_pool, max_pool_x, global_max_pool,
-                                avg_pool, avg_pool_x, global_mean_pool, 
+                                avg_pool, avg_pool_x, global_mean_pool,
                                 global_add_pool)
 
 transform = T.Cartesian(cat=False)
@@ -65,6 +65,7 @@ def pool_edge(cluster, edge_index, edge_attr: Optional[torch.Tensor] = None):
 
 def _aggr_pool_x(cluster, x, aggr: str, size: Optional[int] = None):
     """Call into scatter with configurable reduction op"""
+    #print("aggr: ", aggr)
     return scatter(x, cluster, dim=0, dim_size=size, reduce=aggr)
 
 def global_pool_aggr(x, batch: OptTensor, aggr: str, size: Optional[int] = None):
@@ -100,10 +101,10 @@ def aggr_pool_x(cluster, x, batch: OptTensor, aggr: str, size: Optional[int] = N
         batch = pool_batch(perm, batch)
 
     return x, batch
-    
+
 class DynamicReductionNetworkJit(nn.Module):
     '''
-    This model iteratively contracts nearest neighbour graphs 
+    This model iteratively contracts nearest neighbour graphs
     until there is one output node.
     The latent space trained to group useful features at each level
     of aggregration.
@@ -114,20 +115,20 @@ class DynamicReductionNetworkJit(nn.Module):
     @param input_dim: dimension of input features
     @param hidden_dim: dimension of hidden layers
     @param output_dim: dimensio of output
-    
+
     @param k: size of k-nearest neighbor graphs
-    @param aggr: message passing aggregation scheme. 
+    @param aggr: message passing aggregation scheme.
     @param norm: feature normaliztion. None is equivalent to all 1s (ie no scaling)
     @param loop: boolean for presence/absence of self loops in k-nearest neighbor graphs
     @param pool: type of pooling in aggregation layers. Choices are 'add', 'max', 'mean'
-    
+
     @param agg_layers: number of aggregation layers. Must be >=0
     @param mp_layers: number of layers in message passing networks. Must be >=1
     @param in_layers: number of layers in inputnet. Must be >=1
     @param out_layers: number of layers in outputnet. Must be >=1
     '''
     latent_probe: Optional[int]
-    def __init__(self, input_dim=4, hidden_dim=64, output_dim=1, k=16, aggr='add', norm=None, 
+    def __init__(self, input_dim=4, hidden_dim=64, output_dim=1, k=16, aggr='add', norm=None,
             loop=True, pool='max',
             agg_layers=2, mp_layers=2, in_layers=1, out_layers=3,
             graph_features = 0,
@@ -139,7 +140,7 @@ class DynamicReductionNetworkJit(nn.Module):
         if latent_probe is not None and (latent_probe>agg_layers+1 or latent_probe<-1*agg_layers-1):
             print("Error: asked for invalid latent_probe layer")
             return
-        
+
         if latent_probe is not None and latent_probe < 0:
             latent_probe = agg_layers+1 - latent_probe
 
@@ -159,7 +160,7 @@ class DynamicReductionNetworkJit(nn.Module):
 
         #normalization vector
         self.datanorm = nn.Parameter(norm)
-        
+
         self.k = k
 
         #construct inputnet
@@ -168,34 +169,43 @@ class DynamicReductionNetworkJit(nn.Module):
                 nn.ELU()]
 
         for i in range(in_layers-1):
-            in_layers_l += [nn.Linear(hidden_dim, hidden_dim), 
+            in_layers_l += [nn.Linear(hidden_dim, hidden_dim),
                     nn.ELU()]
 
         self.inputnet = nn.Sequential(*in_layers_l)
 
+        print("input net: ", self.inputnet)
 
         #construct aggregation layers
         self.agg_layers = nn.ModuleList()
+        print("agg layers: ", self.agg_layers)
         for i in range(agg_layers):
+            print("hello there mate 1")
             #construct message passing network
             mp_layers_l = []
 
             for j in range(mp_layers-1):
+                print("hello there mate 2")
                 mp_layers_l += [nn.Linear(2*hidden_dim, 2*hidden_dim),
                         nn.ELU()]
 
             mp_layers_l += [nn.Linear(2*hidden_dim, hidden_dim),
                     nn.ELU()]
-           
+
             convnn = nn.Sequential(*mp_layers_l)
-            
+
             self.agg_layers.append(EdgeConv(nn=convnn, aggr=aggr).jittable())
+            print("aggr: ", aggr)
+            print("convnn: " , convnn)
+
+        print("agg layers: ", self.agg_layers)
+        #print("mp layers: ",mp_layers)
 
         #construct outputnet
         out_layers_l = []
 
         for i in range(out_layers-1):
-            out_layers_l += [nn.Linear(hidden_dim+self.graph_features, hidden_dim+self.graph_features), 
+            out_layers_l += [nn.Linear(hidden_dim+self.graph_features, hidden_dim+self.graph_features),
                     nn.ELU()]
 
         out_layers_l += [nn.Linear(hidden_dim+self.graph_features, output_dim)]
@@ -204,50 +214,89 @@ class DynamicReductionNetworkJit(nn.Module):
 
         if pool not in {'max', 'mean', 'add'}:
             raise Exception("ERROR: INVALID POOLING")
-        
+
         self.aggr_type = pool
+
+        print("output: ", self.output)
 
     def forward(self, x: Tensor, batch: OptTensor, graph_x: OptTensor) -> Tensor:
         '''
         Push the batch 'data' through the network
         '''
+        #print("################################")
+        #print("initial size of x: ", x.size())
+        #print("initial x: ",len(x))
         x = self.datanorm * x
+        #print("self.datanorm: ", self.datanorm)
         x = self.inputnet(x)
-
+        #print("input x", len(x))
+        #print("initial size of x: ", x.size())
         latent_probe = self.latent_probe
-        
+
         if graph_x is not None:
+            print("graph is none")
             graph_x = graph_x.view((-1, self.graph_features))
 
         # if there are no aggregation layers just leave x, batch alone
         nAgg = len(self.agg_layers)
+        counter = 0
         for i, edgeconv in enumerate(self.agg_layers):
+            counter += 1
             if latent_probe is not None and i == latent_probe:
                 return x
+            #print("batch len", len(batch))
+            #print("size of batch: ", batch.size())
+            #print(batch)
             knn = knn_graph(x, self.k, batch, loop=self.loop, flow=edgeconv.flow)
+            #print("knn : " ,knn)
+            #print("self.kL " , len(self.k))
+            #print(self.k)
+            #print("len of x:", len(x))
+            #print("knn: ", knn[0].shape())
             edge_index = to_undirected(knn)
+            #print("#i: ", i, " #edgeconv: ", edgeconv)
+            #print("x[0] before edgeconv: ", x[0])
             x = edgeconv(x, edge_index)
+            #print("x[0] after edgeconv: ", x[0])
+            #print("x.size after edgeconv: ", x.size())
+            #print("edge index: ", edge_index)
+
 
             weight = normalized_cut_2d(edge_index, x)
+            #print("weight: ", weight.size())
             cluster = graclus_cluster(edge_index[0], edge_index[1], weight, x.size(0))
+            #print("cluster: ", cluster.size())
+            #print(cluster[0:100])
 
+            #print("batch: ", batch)
             if i == nAgg - 1:
                 x, batch = aggr_pool_x(cluster, x, batch, self.aggr_type)
             else:
                 x, batch = aggr_pool(cluster, x, batch, self.aggr_type)
 
+            #print("batch: ", batch[0:10])
+            #print("x.size after aggr_pool: ", x.size())
+            #print("x[0] after aggregate: ", x[0])
+            #print("batch.size after aggr_pool: ", batch)
+
         if latent_probe is not None and latent_probe == nAgg:
+            #print("latent is none")
             return x
 
         # this xforms to batch-per-row so no need to return batch
+        #print("after agg x.size", x.size())
         x = global_pool_aggr(x, batch, self.aggr_type)
+        #print("after global x.size", x.size())
 
         if latent_probe is not None and latent_probe == nAgg + 1:
+            #print("latent is none")
             return x
 
         if graph_x is not None:
+            #print("graph is not none 2")
             x = torch.cat((x, graph_x), 1)
 
         x = self.output(x).squeeze(-1)
-
+        #print("size of x at the end: ", x.size())
+        #print("####################################################")
         return x
