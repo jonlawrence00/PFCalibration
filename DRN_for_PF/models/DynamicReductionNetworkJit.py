@@ -207,13 +207,13 @@ class DynamicReductionNetworkJit(nn.Module):
         #construct outputnet
         out_layers_l = []
 
-        #temp_layer = nn.Linear(4*hidden_dim+self.graph_features, 2*hidden_dim+self.graph_features)
-        #init.kaiming_uniform_(temp_layer.weight)
-        #out_layers_l += [temp_layer, nn.BatchNorm1d(4*hidden_dim), nn.ReLU(), nn.Dropout(.1)]
+        temp_layer = nn.Linear(4*hidden_dim+self.graph_features, 2*hidden_dim+self.graph_features)
+        init.kaiming_uniform_(temp_layer.weight)
+        out_layers_l += [temp_layer, nn.BatchNorm1d(4*hidden_dim), nn.ReLU(), nn.Dropout(.1)]
 
-        #temp_layer = nn.Linear(2*hidden_dim+self.graph_features, hidden_dim+self.graph_features)
-        #init.kaiming_uniform_(temp_layer.weight)
-        #out_layers_l += [temp_layer, nn.BatchNorm1d(1), nn.ReLU()]
+        temp_layer = nn.Linear(2*hidden_dim+self.graph_features, hidden_dim+self.graph_features)
+        init.kaiming_uniform_(temp_layer.weight)
+        out_layers_l += [temp_layer, nn.BatchNorm1d(1), nn.ReLU()]
 
         for i in range(out_layers-1):
             temp_layer = nn.Linear(hidden_dim+self.graph_features, hidden_dim+self.graph_features)
@@ -233,120 +233,6 @@ class DynamicReductionNetworkJit(nn.Module):
         self.aggr_type = pool
 
         print("output: ", self.output)
-
-        '''#construct inputnet
-        in_layers_l = []
-        in_layers_l += [nn.Linear(input_dim, hidden_dim),
-                nn.ELU()]
-
-        for i in range(in_layers-1):
-            in_layers_l += [nn.Linear(hidden_dim, hidden_dim), 
-                    nn.ELU()]
-
-        self.inputnet = nn.Sequential(*in_layers_l)
-
-        print("input net: ", self.inputnet)
-        
-        #construct aggregation layers
-        self.agg_layers = nn.ModuleList()
-        print("agg layers: ", self.agg_layers)
-        for i in range(agg_layers):
-            print("hello there mate 1")
-            #construct message passing network
-            mp_layers_l = []
-
-            for j in range(mp_layers-1):
-                print("hello there mate 2")
-                mp_layers_l += [nn.Linear(2*hidden_dim, 2*hidden_dim), nn.ELU()]
-
-            mp_layers_l += [nn.Linear(2*hidden_dim, hidden_dim),
-                    nn.ELU()]
-           
-            convnn = nn.Sequential(*mp_layers_l)
-            
-            self.agg_layers.append(EdgeConv(nn=convnn, aggr=aggr).jittable())
-            print("aggr: ", aggr)
-            print("convnn: " , convnn)
-
-        print("agg layers: ", self.agg_layers)
-        #print("mp layers: ",mp_layers)
-        
-        #construct outputnet
-        out_layers_l = []
-
-        for i in range(out_layers-1):
-            out_layers_l += [nn.Linear(hidden_dim+self.graph_features, hidden_dim+self.graph_features), nn.ELU()]
-            #out_layers_l += [nn.Linear(hidden_dim+self.graph_features, hidden_dim+self.graph_features), nn.ELU(), nn.Dropout(.1)]
-
-        out_layers_l += [nn.Linear(hidden_dim+self.graph_features, output_dim)]
-
-        self.output = nn.Sequential(*out_layers_l)
-
-        if pool not in {'max', 'mean', 'add'}:
-            raise Exception("ERROR: INVALID POOLING")
-        
-        self.aggr_type = pool
-
-        print("output: ", self.output)'''
-
-        '''#construct inputnet
-        in_layers_l = []
-        in_layers_l += [nn.Linear(input_dim, hidden_dim),
-                nn.ELU()]
-
-        for i in range(in_layers-1):
-            in_layers_l += [nn.Linear(hidden_dim, hidden_dim), 
-                    nn.ELU()]
-
-        self.inputnet = nn.Sequential(*in_layers_l)
-
-        print("input net: ", self.inputnet)
-        
-        #construct aggregation layers
-        self.agg_layers = nn.ModuleList()
-        print("agg layers: ", self.agg_layers)
-        for i in range(agg_layers):
-            e = 2**(i+1)
-            print("hello there mate 1")
-            #construct message passing network
-            mp_layers_l = []
-
-            for j in range(mp_layers-1):
-                print("hello there mate 2")
-                mp_layers_l += [nn.Linear(e*hidden_dim, e*hidden_dim), nn.ELU()]
-
-            #mp_layers_l += [nn.Linear(2*hidden_dim, hidden_dim),nn.ELU()]
-           
-            convnn = nn.Sequential(*mp_layers_l)
-            
-            self.agg_layers.append(EdgeConv(nn=convnn, aggr=aggr).jittable())
-            print("aggr: ", aggr)
-            print("convnn: " , convnn)
-
-        print("agg layers: ", self.agg_layers)
-        #print("mp layers: ",mp_layers)
-        
-        #construct outputnet
-        out_layers_l = []
-
-        out_layers_l += [nn.Linear(4*hidden_dim+self.graph_features, 2*hidden_dim+self.graph_features), nn.ELU()]
-
-        out_layers_l += [nn.Linear(2*hidden_dim+self.graph_features, hidden_dim+self.graph_features), nn.ELU()]
-        
-        for i in range(out_layers-1):
-            out_layers_l += [nn.Linear(hidden_dim+self.graph_features, hidden_dim+self.graph_features), nn.ELU()]
-            #out_layers_l += [nn.Linear(hidden_dim+self.graph_features, hidden_dim+self.graph_features), nn.ELU(), nn.Dropout(.1)]
-
-        out_layers_l += [nn.Linear(hidden_dim+self.graph_features, output_dim)]
-
-        self.output = nn.Sequential(*out_layers_l)
-
-        if pool not in {'max', 'mean', 'add'}:
-            raise Exception("ERROR: INVALID POOLING")
-        
-        self.aggr_type = pool
-
-        print("output: ", self.output)'''
 
     def forward(self, x: Tensor, batch: OptTensor, graph_x: OptTensor) -> Tensor:
         '''
