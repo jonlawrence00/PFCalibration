@@ -6,10 +6,10 @@ import numpy as np
 import torch
 import gc
 import torch.nn as nn
-import torch.nn.init as init
 from torch.nn.functional import softplus
 import torch_geometric.transforms as T
 
+#test
 from torch.utils.checkpoint import checkpoint
 from torch_cluster import knn_graph, graclus_cluster
 from torch_scatter import scatter
@@ -66,7 +66,6 @@ def pool_edge(cluster, edge_index, edge_attr: Optional[torch.Tensor] = None):
 
 def _aggr_pool_x(cluster, x, aggr: str, size: Optional[int] = None):
     """Call into scatter with configurable reduction op"""
-    #print("aggr: ", aggr)
     return scatter(x, cluster, dim=0, dim_size=size, reduce=aggr)
 
 def global_pool_aggr(x, batch: OptTensor, aggr: str, size: Optional[int] = None):
@@ -82,10 +81,7 @@ def global_pool_aggr(x, batch: OptTensor, aggr: str, size: Optional[int] = None)
 # in particular edge_attr can be removed since it is always None
 def aggr_pool(cluster, x, batch: OptTensor, aggr: str) -> Tuple[Tensor, OptTensor]:
     """jit-friendly version of max/mean/add pool"""
-    #print("cluster before; ", len(cluster))
     cluster, perm = consecutive_cluster(cluster)
-    #print("cluster after; ", len(cluster))
-    #print("perm: ,", len(perm))
     x = _aggr_pool_x(cluster, x, aggr)
     if batch is not None:
         batch = pool_batch(perm, batch)
@@ -169,61 +165,41 @@ class DynamicReductionNetworkJit(nn.Module):
 
         #construct inputnet
         in_layers_l = []
-        temp_layer = nn.Linear(input_dim, hidden_dim)
-        init.kaiming_uniform_(temp_layer.weight)
-        in_layers_l += [temp_layer,nn.ReLU()]
+        in_layers_l += [nn.Linear(input_dim, hidden_dim),
+                nn.ELU()]
 
         for i in range(in_layers-1):
-            temp_layer = nn.Linear(hidden_dim, hidden_dim)
-            init.kaiming_uniform_(temp_layer.weight)
-            in_layers_l += [temp_layer, 
-                    nn.ReLU()]
+            in_layers_l += [nn.Linear(hidden_dim, hidden_dim), 
+                    nn.ELU()]
 
         self.inputnet = nn.Sequential(*in_layers_l)
-        
+
+
         #construct aggregation layers
         self.agg_layers = nn.ModuleList()
-        print("agg layers: ", self.agg_layers)
         for i in range(agg_layers):
-            e = 2**(i+1)
             #construct message passing network
             mp_layers_l = []
 
             for j in range(mp_layers-1):
-                temp_layer = nn.Linear(2*hidden_dim, 2*hidden_dim)
-                init.kaiming_uniform_(temp_layer.weight)
-                mp_layers_l += [temp_layer, nn.BatchNorm1d(2*hidden_dim), nn.ReLU()]
+                mp_layers_l += [nn.Linear(2*hidden_dim, 2*hidden_dim),
+                        nn.ELU()]
 
-            temp_layer = nn.Linear(2*hidden_dim, hidden_dim)
-            init.kaiming_uniform_(temp_layer.weight)
-            mp_layers_l += [temp_layer, nn.BatchNorm1d(hidden_dim), nn.ReLU()]
+            mp_layers_l += [nn.Linear(2*hidden_dim, hidden_dim),
+                    nn.ELU()]
            
             convnn = nn.Sequential(*mp_layers_l)
             
             self.agg_layers.append(EdgeConv(nn=convnn, aggr=aggr).jittable())
 
-        print("agg layers: ", self.agg_layers)
-        
         #construct outputnet
         out_layers_l = []
 
-        temp_layer = nn.Linear(4*hidden_dim+self.graph_features, 2*hidden_dim+self.graph_features)
-        init.kaiming_uniform_(temp_layer.weight)
-        out_layers_l += [temp_layer, nn.BatchNorm1d(4*hidden_dim), nn.ReLU(), nn.Dropout(.1)]
-
-        temp_layer = nn.Linear(2*hidden_dim+self.graph_features, hidden_dim+self.graph_features)
-        init.kaiming_uniform_(temp_layer.weight)
-        out_layers_l += [temp_layer, nn.BatchNorm1d(1), nn.ReLU()]
-
         for i in range(out_layers-1):
-            temp_layer = nn.Linear(hidden_dim+self.graph_features, hidden_dim+self.graph_features)
-            init.kaiming_uniform_(temp_layer.weight)
-            out_layers_l += [temp_layer, nn.ReLU(), nn.Dropout(.1)]
+            out_layers_l += [nn.Linear(hidden_dim+self.graph_features, hidden_dim+self.graph_features), 
+                    nn.ELU()]
 
-
-        temp_layer = nn.Linear(hidden_dim+self.graph_features, output_dim)
-        init.kaiming_uniform_(temp_layer.weight)
-        out_layers_l += [temp_layer]
+        out_layers_l += [nn.Linear(hidden_dim+self.graph_features, output_dim)]
 
         self.output = nn.Sequential(*out_layers_l)
 
@@ -232,14 +208,13 @@ class DynamicReductionNetworkJit(nn.Module):
         
         self.aggr_type = pool
 
-        print("output: ", self.output)
-
     def forward(self, x: Tensor, batch: OptTensor, graph_x: OptTensor) -> Tensor:
         '''
         Push the batch 'data' through the network
         '''
         x = self.datanorm * x
         x = self.inputnet(x)
+
         latent_probe = self.latent_probe
         
         if graph_x is not None:
@@ -248,13 +223,11 @@ class DynamicReductionNetworkJit(nn.Module):
         # if there are no aggregation layers just leave x, batch alone
         nAgg = len(self.agg_layers)
         for i, edgeconv in enumerate(self.agg_layers):
-            initial = x
             if latent_probe is not None and i == latent_probe:
                 return x
             knn = knn_graph(x, self.k, batch, loop=self.loop, flow=edgeconv.flow)
             edge_index = to_undirected(knn)
             x = edgeconv(x, edge_index)
-            x+=initial
 
             weight = normalized_cut_2d(edge_index, x)
             cluster = graclus_cluster(edge_index[0], edge_index[1], weight, x.size(0))
@@ -264,7 +237,6 @@ class DynamicReductionNetworkJit(nn.Module):
             else:
                 x, batch = aggr_pool(cluster, x, batch, self.aggr_type)
 
-
         if latent_probe is not None and latent_probe == nAgg:
             return x
 
@@ -272,12 +244,11 @@ class DynamicReductionNetworkJit(nn.Module):
         x = global_pool_aggr(x, batch, self.aggr_type)
 
         if latent_probe is not None and latent_probe == nAgg + 1:
-            #print("latent is none")
             return x
 
         if graph_x is not None:
-            #print("graph is not none 2")
             x = torch.cat((x, graph_x), 1)
 
         x = self.output(x).squeeze(-1)
+
         return x
